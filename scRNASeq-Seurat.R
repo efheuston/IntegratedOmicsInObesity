@@ -19,14 +19,14 @@ library(cowplot)
 # Global parameters -------------------------------------------------------
 
 ## frequently modified
-projectName <- "hpap108"
+projectName <- "T2DvCTRL_scRNA"
 workingdir <- "./"
+path_to_data <- "PancDB_data/cellranger_scRNA"
 regression.param <- 0
 cum.var.thresh <- 80
 resolution <- 0.5
 
 ## infrequently modified
-path_to_data <- "PancDB_data/cellranger_scRNA/HPAP-108"
 run.jackstraw <- TRUE
 min.cells <- 3
 min.features <- 200
@@ -35,15 +35,35 @@ min.features <- 200
 sourceable.functions <- list.files(path = "RFunctions", pattern = "*.R", full.names = TRUE)
 invisible(sapply(sourceable.functions, source))
 
+
+
+
 # Load data ---------------------------------------------------------------
 
-##load seurat object
 try(setwd(workingdir), silent = TRUE)
 writeLines(capture.output(sessionInfo()), paste0(projectName, "_sessionInfo.txt"))
 
-seurat.object <- Read10X_h5(paste0(path_to_data,"/outs/filtered_feature_bc_matrix.h5"))
-seurat.object<- CreateSeuratObject(seurat.object, project = projectName, min.cells = min.cells, min.features = min.features)
-seurat.object
+
+
+
+##load seurat object
+
+sc.data <- sapply(list.dirs(path = path_to_data, recursive = FALSE, full.names = TRUE), 
+									basename, 
+									USE.NAMES = TRUE)
+
+
+object.list <- c()
+for(i in 1:length(sc.data)){
+	object.list[[i]] <- Read10X_h5(paste0(names(sc.data)[i], "/outs/filtered_feature_bc_matrix.h5"))
+	object.list[[i]] <- CreateSeuratObject(object.list[[i]], 
+																			 project = projectName, 
+																			 min.cells = min.cells, 
+																			 min.features = min.features)
+	print(paste("finished", sc.data[[i]]))
+}
+
+seurat.object <- merge(object.list[[1]], y = object.list[2:length(object.list)], add.cell.ids = names(object.list), project = projectName)
 
 ##add metadata
 metadata.df <- read.csv(file = "PancDB_data/20220801MetaData.csv", header = TRUE, row.names = 1)
