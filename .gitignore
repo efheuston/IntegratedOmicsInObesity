@@ -3,7 +3,7 @@
 .RData
 .Ruserdata
 .DS_Store
-.RDS
+*.RDS
 
 #Ignore raw sequencing data
 PancDB_data
