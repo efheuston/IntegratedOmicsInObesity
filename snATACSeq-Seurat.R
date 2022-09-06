@@ -1,18 +1,20 @@
-# Run analysis on single cell RNA data
+# Run analysis on single nucleus ATAC data
 # Sample data is from [PandDB](https://hpap.pmacs.upenn.edu/)
-# Available sequencing data: single cell [RNA_rep1, ATAC_alpha/beta(?)]; bulk [RNA, ATAC]
+# Works through Signac
 
 # Load libraries ----------------------------------------------------------
 
-library(dplyr)
+library(Signac)
 library(Seurat)
 library(patchwork)
-library(cowplot)
+library(ggplot2)
+library(GenomeInfoDb)
+library(EnsDb.Hsapiens.v86)
 
 # Global parameters -------------------------------------------------------
 
 ## frequently modified
-projectName <- "hpap108"
+projectName <- ""
 workingdir <- "./"
 regression.param <- 0
 cum.var.thresh <- 80
