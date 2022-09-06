@@ -19,14 +19,15 @@ library(cowplot)
 # Global parameters -------------------------------------------------------
 
 ## frequently modified
-projectName <- "hpap108"
+projectName <- "T2DvCTRL_scRNA"
 workingdir <- "./"
-regression.param <- 0
+path_to_data <- "PancDB_data/cellranger_scRNA"
+regression.vars <- NULL
 cum.var.thresh <- 80
 resolution <- 0.5
 
 ## infrequently modified
-path_to_data <- "PancDB_data/cellranger_scRNA/HPAP-108"
+do.sctransform <- TRUE
 run.jackstraw <- TRUE
 min.cells <- 3
 min.features <- 200
@@ -35,37 +36,54 @@ min.features <- 200
 sourceable.functions <- list.files(path = "RFunctions", pattern = "*.R", full.names = TRUE)
 invisible(sapply(sourceable.functions, source))
 
+
+
+
 # Load data ---------------------------------------------------------------
 
-##load seurat object
 try(setwd(workingdir), silent = TRUE)
 writeLines(capture.output(sessionInfo()), paste0(projectName, "_sessionInfo.txt"))
 
-raw.seurat.object <- Read10X_h5(paste0(path_to_data,"/outs/filtered_feature_bc_matrix.h5"))
-raw.seurat.object<- CreateSeuratObject(raw.seurat.object, project = projectName, min.cells = min.cells, min.features = min.features)
-raw.seurat.object
-##add metadata
 
+
+
+##load seurat object
+
+sc.data <- sapply(list.dirs(path = path_to_data, recursive = FALSE, full.names = TRUE), 
+									basename, 
+									USE.NAMES = TRUE)
+
+
+object.list <- c()
+for(i in 1:length(sc.data)){
+	object.list[[i]] <- Read10X_h5(paste0(names(sc.data)[i], "/outs/filtered_feature_bc_matrix.h5"))
+	object.list[[i]] <- CreateSeuratObject(object.list[[i]], 
+																			 project = projectName, 
+																			 min.cells = min.cells, 
+																			 min.features = min.features)
+	print(paste("finished", sc.data[[i]]))
+}
+
+seurat.object <- merge(object.list[[1]], y = object.list[2:length(object.list)], add.cell.ids = names(object.list), project = projectName)
+
+##add metadata
+metadata.df <- read.csv(file = "PancDB_data/20220801MetaData.csv", header = TRUE, row.names = 1)
+seurat.object <- AssignMetadata(metadata.df = metadata.df, seurat.object = seurat.object) # created "AssignMetadata" function
 
 # QC ----------------------------------------------------------------------
 
-raw.seurat.object[["percent.mt"]] <- PercentageFeatureSet(raw.seurat.object, pattern = "MT-")
-
-##plots
-VlnPlot(raw.seurat.object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, pt.size = 0.01)
-plot1<- FeatureScatter(raw.seurat.object, feature1 = "nCount_RNA", feature2 = "percent.mt")
-plot2 <- FeatureScatter(raw.seurat.object, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
-plot1 + plot2
+seurat.object[["percent.mt"]] <- PercentageFeatureSet(seurat.object, pattern = "MT-")
 
 ##filter by feature count and perent.mito
-seurat.object <- subset(raw.seurat.object, 
+seurat.object <- subset(seurat.object, 
 												subset = nFeature_RNA >= 200 &
 												nFeature_RNA <= 2500 &
 												percent.mt <= 5)
-filtered.cells <- length(rownames(raw.seurat.object@meta.data))-length(rownames(seurat.object@meta.data))
+filtered.cells <- length(rownames(seurat.object@meta.data))-length(rownames(seurat.object@meta.data))
 print(paste("filtered out", filtered.cells, "cells"))
 seurat.object
 
+##plot qc stats
 VlnPlot(seurat.object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
 plot1<- FeatureScatter(seurat.object, feature1 = "nCount_RNA", feature2 = "percent.mt")
 plot2 <- FeatureScatter(seurat.object, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
@@ -74,21 +92,35 @@ plot1 + plot2
 
 # Normalize and scale data ----------------------------------------------------------
 
-##normalize
-seurat.object <- NormalizeData(seurat.object, normalization.method = "LogNormalize", scale.factor = 10000)
 
-##find HVG
-seurat.object <- FindVariableFeatures(seurat.object, selection.method = "vst", nfeatures = 2000)
-top10hvg <- head(VariableFeatures(seurat.object), 10)
-plot1 <- VariableFeaturePlot(seurat.object)
-plot2	<- LabelPoints(plot = plot1, points = top10hvg, repel = TRUE)
-plot1 + plot2
-top10hvg
+if(do.sctransform == FALSE){ # standard method
+	print("Performing standard normalization and scaling")
+	if(length(regression.vars) >1){
+		print("HEY YOU! You're performing standard scaling on more than 1 regression variable. You should probably be doing SCTransform. Set `do.sctransform` to TRUE")
+	}
 
-##scale (a linear transformation)
-all.genes <- rownames(seurat.object)
-seurat.object <- ScaleData(seurat.object, features = all.genes, vars.to.regress = "nCount_RNA")
-
+	##normalize
+	seurat.object <- NormalizeData(seurat.object, normalization.method = "LogNormalize", scale.factor = 10000)
+	
+	##find HVG
+	seurat.object <- FindVariableFeatures(seurat.object, selection.method = "vst", nfeatures = 2000)
+	top10hvg <- head(VariableFeatures(seurat.object), 10)
+	plot1 <- VariableFeaturePlot(seurat.object)
+	plot2	<- LabelPoints(plot = plot1, points = top10hvg, repel = TRUE)
+	plot1 + plot2
+	top10hvg
+	
+	##scale (a linear transformation)
+	all.genes <- rownames(seurat.object)
+	
+	seurat.object <- ScaleData(seurat.object, features = all.genes, vars.to.regress = regression.vars)
+	
+} else if(do.sctransform == TRUE){
+	print("Performing SCTransform")
+	seurat.object <- SCTransform(seurat.object, method = "glsGamPoi", vars.to.regress = regression.vars, verbose = TRUE)
+} else {
+	print("Must set do.sctransform to logical")
+}
 
 # Linear dimensional reduction --------------------------------------------
 
@@ -132,65 +164,37 @@ seurat.object <- FindClusters(seurat.object, resolution = resolution)
 
 ##umap
 seurat.object <- RunUMAP(seurat.object, dims = 1:cluster.dims)
-DimPlot(seurat.object, reduction = "umap")
+DimPlot(seurat.object, reduction = "umap", cols = color.palette, label = T, label.size = 7, repel = T)
 
 ##saveRDS
 saveRDS(seurat.object, file = paste0(workingdir, projectName, "-seuratObject.RDS"))
 
 
+# Find cluster biomarkers -------------------------------------------------
 
+##find positively expressed markers for all clusters compared to all remaining clusters
 
-# Add metadata ------------------------------------------------------------
+markers.seurat.pos <- FindAllMarkers(seurat.object, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+testing <- markers.seurat.pos %>% 
+	group_by(cluster) %>%
+	arrange(desc(abs(avg_log2FC)), .by_group = TRUE)
 
-metadata.df <- read.csv(file = "PancDB_data/20220801MetaData.csv", header = TRUE, row.names = 1)
+markers.seurat.all <- FindAllMarkers(seurat.object, only.pos = FALSE, min.pct = 0.25, logfc.threshold = 0.25)
+markers.seurat.all %>%
+	group_by(cluster) %>%
+	arrange(desc(abs(avg_log2FC)), .by_group = TRUE)
+	
+##create workbook
+markers.table <- openxlsx::createWorkbook()
 
+##write positive markers to table
+openxlsx::addWorksheet(markers.table, sheetName = "PosMarkers")
+openxlsx::writeData(markers.table, sheet = "PosMarkers", x = markers.seurat.pos,startCol = 1, startRow = 1, colNames = TRUE)
 
+##write all markers to table
+openxlsx::addWorksheet(markers.table, sheetName = "AllMarkers")
+openxlsx::writeData(markers.table, sheet = "AllMarkers", x = markers.seurat.all, startCol = 1, startRow = 1, colNames = TRUE)
 
-mydf <- seurat.object@meta.data
-head(mydf)
-head(pt.data)
-dim(pt.data)
-
-
-for(col.pos in 1:dim(metadata.df)[2]){
-	col.id <- colnames(metadata.df)[col.pos]
-	for(row.id in 1:dim(metadata.df)[1]){
-		metadata.info <- metadata.df[row.id, col.id]
-		simplified.pt.id <- stringr::str_replace_all(rownames(metadata.df)[row.id], "[^[:alnum:]]", "")
-		simplified.meta.id <- stringr::str_replace_all(seurat.object@meta.data$orig.ident, "[^[:alnum:]]", "")
-		
-		seurat.object@meta.data[[col.id]][grepl(simplified.pt.id, simplified.meta.id, ignore.case = TRUE) == TRUE] <- metadata.info
-	}
-}
-
-
-
-
-
-
-
-
-
-seurat.object <- readRDS("hpap108-seuratObject.RDS")
-
-seurat.object <- AssignMetadata(pt.data, seurat.object = seurat.object)
-head(seurat.object)
-
-for(datacol in 1:dim(pt.data)[2]){
-	newcol <- colnames(pt.data)[datacol]
-	for(pt.id in 1:dim(pt.data)[1]){
-		pt.info <- pt.data[pt.id, newcol]
-		simplified.pt.id <- stringr::str_replace_all(rownames(pt.data)[pt.id], "[^[:alnum:]]", "")
-		simplified.meta.id <- stringr::str_replace_all(mydf$orig.ident, "[^[:alnum:]]", "")
-			
-		mydf[[newcol]][grepl(simplified.pt.id, simplified.meta.id, ignore.case = TRUE) == TRUE] <- pt.info
-	}
-}
-
-
-
-
-
-
-
+##save workbook
+openxlsx::saveWorkbook(wb = markers.table, file = paste0(projectName, "_seuratMarkers.xlsx"), overwrite = FALSE, returnValue = TRUE)
 
