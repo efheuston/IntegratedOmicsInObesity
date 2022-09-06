@@ -22,11 +22,12 @@ library(cowplot)
 projectName <- "T2DvCTRL_scRNA"
 workingdir <- "./"
 path_to_data <- "PancDB_data/cellranger_scRNA"
-regression.param <- 0
+regression.vars <- NULL
 cum.var.thresh <- 80
 resolution <- 0.5
 
 ## infrequently modified
+do.sctransform <- TRUE
 run.jackstraw <- TRUE
 min.cells <- 3
 min.features <- 200
@@ -91,21 +92,35 @@ plot1 + plot2
 
 # Normalize and scale data ----------------------------------------------------------
 
-##normalize
-seurat.object <- NormalizeData(seurat.object, normalization.method = "LogNormalize", scale.factor = 10000)
 
-##find HVG
-seurat.object <- FindVariableFeatures(seurat.object, selection.method = "vst", nfeatures = 2000)
-top10hvg <- head(VariableFeatures(seurat.object), 10)
-plot1 <- VariableFeaturePlot(seurat.object)
-plot2	<- LabelPoints(plot = plot1, points = top10hvg, repel = TRUE)
-plot1 + plot2
-top10hvg
+if(do.sctransform == FALSE){ # standard method
+	print("Performing standard normalization and scaling")
+	if(length(regression.vars) >1){
+		print("HEY YOU! You're performing standard scaling on more than 1 regression variable. You should probably be doing SCTransform. Set `do.sctransform` to TRUE")
+	}
 
-##scale (a linear transformation)
-all.genes <- rownames(seurat.object)
-seurat.object <- ScaleData(seurat.object, features = all.genes, vars.to.regress = "nCount_RNA")
-
+	##normalize
+	seurat.object <- NormalizeData(seurat.object, normalization.method = "LogNormalize", scale.factor = 10000)
+	
+	##find HVG
+	seurat.object <- FindVariableFeatures(seurat.object, selection.method = "vst", nfeatures = 2000)
+	top10hvg <- head(VariableFeatures(seurat.object), 10)
+	plot1 <- VariableFeaturePlot(seurat.object)
+	plot2	<- LabelPoints(plot = plot1, points = top10hvg, repel = TRUE)
+	plot1 + plot2
+	top10hvg
+	
+	##scale (a linear transformation)
+	all.genes <- rownames(seurat.object)
+	
+	seurat.object <- ScaleData(seurat.object, features = all.genes, vars.to.regress = regression.vars)
+	
+} else if(do.sctransform == TRUE){
+	print("Performing SCTransform")
+	seurat.object <- SCTransform(seurat.object, method = "glsGamPoi", vars.to.regress = regression.vars, verbose = TRUE)
+} else {
+	print("Must set do.sctransform to logical")
+}
 
 # Linear dimensional reduction --------------------------------------------
 
