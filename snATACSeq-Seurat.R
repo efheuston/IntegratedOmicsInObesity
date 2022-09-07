@@ -52,4 +52,35 @@ seurat.atac <- CreateSeuratObject(counts = chrom_assay,
 																	# meta.data = metadata
 																		)
 
+# Examine Seurat object ---------------------------------------------------
+
+seurat.atac[['peaks']]
+granges(seurat.atac)
+
+##extract annotations
+
+annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
+seqlevelsStyle(annotations) <- 'UCSC'
+Annotation(seurat.atac) <- annotations
+
+
+# QC Metrics --------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
