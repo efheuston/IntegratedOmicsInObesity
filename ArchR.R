@@ -119,7 +119,7 @@ diab.proj@cellColData[,names(metadata)] <- lapply(names(metadata), function(x){
 saveArchRProject(ArchRProj = diab.proj, outputDirectory = working.dir, load = TRUE)
 # loadArchRProject(path = working.dir)
 saveRDS(diab.proj, paste0(projectName, "_noFilters.RDS"))
-2# diab.proj <- readRDS("T2D_ArchR_noFilters.RDS")
+# diab.proj <- readRDS("T2D_ArchR_noFilters.RDS")
 
 # Filter  ---------------------------------------------------------
 
@@ -175,9 +175,11 @@ diab.proj <- addUMAP(ArchRProj = diab.proj,
 plotEmbedding(ArchRProj = diab.proj, colorBy = "cellColData", name = "Simp.Disease", embedding = "UMAP_LSI")
 saveArchRProject(ArchRProj = diab.proj, outputDirectory = working.dir, load = TRUE)
 
-
+temp.proj <- diab.proj
 diab.proj <- addHarmony(ArchRProj = diab.proj, reducedDims = "IterativeLSI", name = "Harmony", groupBy = c("SequencerID", "SampleEthnicity", "SampleAge", "BMI", "SampleSex"), force = TRUE)
- 
+
+temp.proj <- addHarmony(ArchRProj = temp.proj, reducedDims = "IterativeLSI", name = "Harmony", groupBy = c("SequencerID", "SampleEthnicity", "SampleAge", "BMI", "SampleSex"), force = TRUE)
+
 
 diab.proj <- addUMAP(ArchRProj = diab.proj,
 										 reducedDims = "Harmony",
@@ -193,6 +195,10 @@ plotEmbedding(ArchRProj = diab.proj, colorBy = "cellColData", name = "Simp.Disea
 p1 <- plotEmbedding(ArchRProj = diab.proj, colorBy = "cellColData", name = "Simp.Disease", embedding = "UMAP_harmony", randomize = TRUE)
 p2 <- plotEmbedding(ArchRProj = diab.proj, colorBy = "cellColData", name = paste0("Harmony_res", as.character(res)), embedding = "UMAP_harmony")
 ggAlignPlots(p1, p2, type = "h")
+png(filename = paste0(projectName, "-UMAP_harmony-res", as.character(res), ".png"), height = 800, width = 1200, bg = "transparent")
+ggAlignPlots(p1, p2, type = "h")
+dev.off()
+
 plotEmbedding(ArchRProj = diab.proj, colorBy = "cellColData", name = "DiseaseStatus", embedding = "UMAP_harmony")
 
 
@@ -207,6 +213,52 @@ diab.markers <- getMarkerFeatures(ArchRProj = diab.proj,
 																	bias = c("TSSEnrichment", "log10(nFrags)"),
 																	testMethod = "wilcoxon",
 																	threads = 1)
+saveArchRProject(ArchRProj = diab.proj, outputDirectory = working.dir, load = TRUE)
+saveRDS(diab.markers, paste0(projectName, "_HarmonyMarkerFeatures.RDS"))
+
+diab.markerList <- getMarkers(diab.markers, cutOff = "FDR <= 0.01 & Log2FC >= 1.25")
+diab.markerList
+
+
+# Cell type markers -------------------------------------------------------
+
+# load cell type markers. These are accessed from __Generation of human islet cell type-specific identity genesets, Nature Communications, 2022__.  
+islet.markers <- list()
+islet.markers$islets.alpha <- read.table(file = "/Users/heustonef/OneDrive - National Institutes of Health/SingleCellMetaAnalysis/Generation of human islet cell type-specific identity genesets GeneSetsDownload - 2022/herrera_alpha_hs.txt")[,1]
+islet.markers$islets.beta <- read.table(file = "/Users/heustonef/OneDrive - National Institutes of Health/SingleCellMetaAnalysis/Generation of human islet cell type-specific identity genesets GeneSetsDownload - 2022/herrera_beta_hs.txt")[,1]
+islet.markers$islets.gamma <- read.table(file = "/Users/heustonef/OneDrive - National Institutes of Health/SingleCellMetaAnalysis/Generation of human islet cell type-specific identity genesets GeneSetsDownload - 2022/herrera_gamma_hs.txt")[,1]
+islet.markers$islets.delta <- read.table(file = "/Users/heustonef/OneDrive - National Institutes of Health/SingleCellMetaAnalysis/Generation of human islet cell type-specific identity genesets GeneSetsDownload - 2022/herrera_delta_hs.txt")[,1]
+
+#Load top markers from same publication
+source("/Users/heustonef/Desktop/PancDB_Data/ArchR/PancreaticCellMarkers.R")
+
+
+# Heatmaps ----------------------------------------------------------------
+
+heatmap.islets <- plotMarkerHeatmap(seMarker = diab.markers, 
+																cutOff = "FDR <= 0.01 & Log2FC >=1.25",
+																labelMarkers = unlist(top.markers),
+																transpose = TRUE)
+
+heatmap.plot <- ComplexHeatmap::draw(heatmap.islets, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+
+png(filename = paste0(projectName, "-UMAP_harmony-res", as.character(res), "-AllMarkersheatmap.png"), height= 800, width = 1600, bg = "transparent", res = 100)
+plot(heatmap.plot)
+dev.off()
+
+
+length(intersect(unlist(diab.markerList)$name, unlist(top.markers))) # this tells us the number of "top.markers" found in the diab.markerList
+intersect(unlist(diab.markerList)$name, unlist(top.markers)) # this tells us which "top markers" are in the diab.markerList
+
+
+
+
+
+
+
+
+
+
 
 
 
