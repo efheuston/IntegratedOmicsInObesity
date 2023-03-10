@@ -1,6 +1,6 @@
 DonorID 	SampleSex	SampleAge	BMI	SampleEthnicity	DiseaseStatus	SimpDisease	Obesity	HbA1c	GADA	IA-2	IAA	ZnT8	TissueSource	scRNA	scATAC	scMultiome	BulkRNA	BulkATAC
 HPAP-001	M	47	32.2	Caucasian	T2DM (18 yrs Gastric  Bypass)	T2DM	OB	5.7	0	0	0/003	0	UPenn	1	0	0	1	2
-HPAP-002	M	26	16.4	Hispanic (MX)	T1DM (5 yrs duration)	T1DM 	NW	9.8	0	0	0.003	0	nPod	1	0	0	0	0
+HPAP-002	M	26	16.4	Hispanic (MX)	T1DM (5 yrs duration)	T1DM	NW	9.8	0	0	0.003	0	nPod	1	0	0	0	0
 HPAP-003	M	29	24.5	Caucasian	No HX DIAB	NoDM	NW	5.6	119	0	0.004	0.007	nPod	1	0	0	1	1
 HPAP-004	F	24	32.2	Hispanic	No HX DIAB (Asthma)	NoDM	OB	5.4	0	0	0.003	-0.001	UPenn	1	0	0	1	2
 HPAP-005	F	14	24.1	African american/Black	No HX DIAB (Asthma)	NoDM	NW	5.4	0	0	-0.001	-0.004	UPenn	1	0	0	0	0
@@ -13,24 +13,24 @@ HPAP-011	M	3	17.6	African american/Black	No HX DIAB	NoDM	NW	5.5	0	0	0	0.001	UPen
 HPAP-012	F	18	29.6	Caucasian	No HX DIAB	NoDM	OW	4.5	0	0	-0.001	-0.001	nPod	1	0	0	1	1
 HPAP-013	F	28	41.6	Caucasian	T2DM (>5 yrs Polycystic ovaries)	T2DM	OB	6.3	0	0	-0.003	-0.001	UPenn	1	0	0	1	1
 HPAP-014	F	43	30.93	Caucasian	No HX DIAB	NoDM	OB	5.7	9	0	0	-0.001	UPenn	1	0	0	1	1
-HPAP-015	M	29	22.03	Caucasian	T1DM (7 yrs duration)	T1DM 	NW	ND	15	0	0.06	0	nPod	1	0	0	0	0
+HPAP-015	M	29	22.03	Caucasian	T1DM (7 yrs duration)	T1DM	NW	ND	15	0	0.06	0	nPod	1	0	0	0	0
 HPAP-016	M	30	25.21	Caucasian	No HX DIAB	NoDM	OW	5	114	49	0	0.023	nPod	1	0	0	0	0
 HPAP-017	M	30	23.7	Caucasian	No HX DIAB	NoDM	NW	5.5	751	0	-0.001	0	nPod	1	0	0	1	1
 HPAP-018	M	31	24.47	Hispanic	No HX DIAB	NoDM	NW	5.4	2	0.001	0	0.007	UPenn	1	0	0	0	2
 HPAP-019	M	22	29.8	Caucasian	No HX DIAB	NoDM	OW	5.2	353	0	0.001	-0.002	nPod	1	0	0	0	2
-HPAP-020	M	14	13.2	Caucasian	Recent T1DM (Unsuspected)	T1DM 	NW	ND	29	207	0.013	0.07	nPod	1	0	0	0	0
-HPAP-021	F	13	21.4	Caucasian	T1DM (7 yrs duration)	T1DM 	NW	ND	0	0	0.487	-0.008	nPod	1	0	0	0	0
+HPAP-020	M	14	13.2	Caucasian	Recent T1DM (Unsuspected)	T1DM	NW	ND	29	207	0.013	0.07	nPod	1	0	0	0	0
+HPAP-021	F	13	21.4	Caucasian	T1DM (7 yrs duration)	T1DM	NW	ND	0	0	0.487	-0.008	nPod	1	0	0	0	0
 HPAP-022	F	39	34.7	Caucasian	No HX DIAB	NoDM	OB	4.7	ND	ND	ND	ND	UPenn	1	0	0	2	2
-HPAP-023	F	17	21.35	Caucasian	T1DM (7 yrs duration)	T1DM 	NW	8.9	2	0	0.835	0	nPod	1	0	0	0	0
+HPAP-023	F	17	21.35	Caucasian	T1DM (7 yrs duration)	T1DM	NW	8.9	2	0	0.835	0	nPod	1	0	0	0	0
 HPAP-024	M	18	24.3	Caucasian	No HX DIAB	NoDM	NW	5.5	203	0	0	0	nPod	1	0	0	0	2
-HPAP-025	M	30	33.4	Hispanic	T1DM (14 yrs duration)	T1DM 	OB	8.9	0	55	0	0	nPod	0	0	0	0	0
+HPAP-025	M	30	33.4	Hispanic	T1DM (14 yrs duration)	T1DM	OB	8.9	0	55	0	0	nPod	0	0	0	0	0
 HPAP-026	M	24	20.8	Caucasian	No HX DIAB	NoDM	NW	4.9	0	0	0	0	nPod	1	0	0	1	0
 HPAP-027	F	31	32.71	Caucasian	No HX DIAB	NoDM	OB	4.4	0	0	0.002	0	UPenn	1	0	0	0	0
-HPAP-028	M	4	17.3	Caucasian	T1DM (3 yrs duration)	T1DM 	NW	9.8	ND	ND	ND	ND	nPod	1	0	0	0	0
+HPAP-028	M	4	17.3	Caucasian	T1DM (3 yrs duration)	T1DM	NW	9.8	ND	ND	ND	ND	nPod	1	0	0	0	0
 HPAP-029	M	23	28.6	Caucasian	No HX DIAB	NoDM	OW	5.3	84	0	0.001	0.002	nPod	1	0	0	1	0
-HPAP-030	M	18	21.3	Caucasian	T1DM (5 yrs duration)	T1DM 	NW	12.4	1	3	0.004	0.009	nPod	0	0	0	0	0
-HPAP-031	M	23	22.64	Caucasian	T1DM (18 yrs duration)	T1DM 	NW	6.8	0	0	0.02	0.003	UPenn	0	0	0	0	0
-HPAP-032	F	10	16.3	Caucasian	T1DM (3 yrs duration)	T1DM 	NW	9	0	64	0.38	0.01	nPod	1	0	0	0	0
+HPAP-030	M	18	21.3	Caucasian	T1DM (5 yrs duration)	T1DM	NW	12.4	1	3	0.004	0.009	nPod	0	0	0	0	0
+HPAP-031	M	23	22.64	Caucasian	T1DM (18 yrs duration)	T1DM	NW	6.8	0	0	0.02	0.003	UPenn	0	0	0	0	0
+HPAP-032	F	10	16.3	Caucasian	T1DM (3 yrs duration)	T1DM	NW	9	0	64	0.38	0.01	nPod	1	0	0	0	0
 HPAP-033	M	6	14.85	Hispanic	No HX DIAB	NoDM	NW	5.6	0	0	0.001	0.005	UPenn	0	0	0	0	0
 HPAP-034	M	13	18.6	Caucasian	No HX DIAB	NoDM	NW	5.2	0	0	0.002	0.006	UPenn	1	0	0	0	0
 HPAP-035	M	35	26.91	Caucasian	No HX DIAB	NoDM	OW	5.2	0	0	0.002	0.006	UPenn	1	1	0	2	3
@@ -39,21 +39,21 @@ HPAP-037	F	35	21.9	Caucasian	No HX DIAB	NoDM	NW	5.3	0	0	0	0.002	UPenn	1	0	0	0	0
 HPAP-038	M	13	18.34	Caucasian	No HX DIAB	NoDM	NW	5.7	890	0	0.005	0.003	nPod	1	0	0	2	1
 HPAP-039	F	5	16.3	Caucasian	No HX DIAB	NoDM	NW	6.8	0	0	0.002	0.001	nPod	1	1	0	0	0
 HPAP-040	M	35	23.98	Caucasian	No HX DIAB	NoDM	NW	5.4	0	0	0.003	0.004	UPenn	1	1	0	2	2
-HPAP-041	F	24	20.93	Caucasian	T1DM (12 yrs duration)	T1DM 	NW	7.5	0	0	0.002	0.011	UPenn	0	0	0	0	0
+HPAP-041	F	24	20.93	Caucasian	T1DM (12 yrs duration)	T1DM	NW	7.5	0	0	0.002	0.011	UPenn	0	0	0	0	0
 HPAP-042	M	1.1	17.9	Caucasian	No HX DIAB	NoDM	NW	5.6	0	0	0.003	0.008	nPod	1	1	0	0	0
 HPAP-043	M	15	24.07	Hispanic	No HX DIAB	NoDM	NW	5.9	0	155	0.001	0.09	nPod	1	1	0	0	0
 HPAP-044	F	3	12	Caucasian	No HX DIAB	NoDM	NW	5.3	0	0	0.001	0.003	nPod	1	1	0	0	0
 HPAP-045	F	27	26.2	Caucasian	No HX DIAB	NoDM	OW	5.2	321	0	0.003	0.004	nPod	1	1	0	2	2
 HPAP-046	M	19	20.96	African american/Black	No HX DIAB	NoDM	NW	5.7	0	0	-0.001	0.001	UPenn	0	0	0	0	0
 HPAP-047	M	8	16.82	Caucasian	No HX DIAB	NoDM	NW	ND	0	0	0.002	0.002	UPenn	1	1	0	0	1
-HPAP-048	M	27	25.03	Hispanic	T1DM (6 yrs duration)	T1DM 	OW	10.2	5	0	0.006	0.003	nPod	0	0	0	0	0
+HPAP-048	M	27	25.03	Hispanic	T1DM (6 yrs duration)	T1DM	OW	10.2	5	0	0.006	0.003	nPod	0	0	0	0	0
 HPAP-054	F	40	30.85	Caucasian	No HX DIAB	NoDM	OB	8	1	0	0.001	0.007	UPenn	2	1	0	2	1
 HPAP-050	F	21	28.99	Hispanic	No HX DIAB	NoDM	OW	5.1	203	0	0.003	0.004	nPod	1	1	0	0	0
 HPAP-051	F	43	45.49	African american/Black	T2DM (6 yrs duration)	T2DM	Ob	6.7	0	0	0.002	0.009	UPenn	2	1	0	3	4
 HPAP-066	F	58	31.07	African american/Black	No HX DIAB	NoDM	OB	6.2	0	0	0.001	-0.003	nPod	0	1	0	0	1
 HPAP-053	F	58	24.2	Caucasian	No HX DIAB	NoDM	NW	5.6	0	0	0.001	0.003	UPenn	2	1	0	4	0
 HPAP-063	F	45	38.41	Caucasian	NO HX DIAB	NoDM	OB	6	0	0	0	-0.01	UPenn	1	1	0	0	2
-HPAP-055	M	24	27.9	Hispanic	T1DM (7 yrs duration)	T1DM 	OW	10.4	55	255	0.013	1.099	UPenn	1	1	0	0	0
+HPAP-055	M	24	27.9	Hispanic	T1DM (7 yrs duration)	T1DM	OW	10.4	55	255	0.013	1.099	UPenn	1	1	0	0	0
 HPAP-103	F	49	36.44	Caucasian	No HX DIAB	NoDM	OB	6	0	0	-0.001	-0.002	UPenn	1	1	0	1	0
 HPAP-057	F	50	30.49	Caucasian	T2DM (8 months)	T2DM	OB	5.8	0	0	0.002	-0.001	UPenn	2	1	0	4	0
 HPAP-058	F	34	29.26	African american/Black	T2DM (<1yr)	T2DM	OW	9.4	ND	ND	ND	ND	nPod	2	1	0	0	0
@@ -62,16 +62,16 @@ HPAP-060	M	30	26.2	African american/Black	No HX DIAB	NoDM	OW	4.9	23	0	-0.001	-0.
 HPAP-061	F	59	38.27	African american/Black	T2DM	T2DM	OB	5.9	0	0	-0.002	-0.015	UPenn	1	1	0	0	0
 HPAP-062	M	56	26.48	Caucasian	T2DM (4-5 yrs) 	T2DM	OW	ND	ND	ND	ND	ND	nPod	0	1	0	0	2
 HPAP-077	M	47	32.78	Caucasian	No HX DIAB	NoDM	OB	5.7	0	0	-0.006	0.003	UPenn	1	1	0	1	2
-HPAP-064	M	24	16.98	African american/Black	T1DM	T1DM 	NW	13	0	0	-0.002	0.027	UPenn	1	1	0	0	1
+HPAP-064	M	24	16.98	African american/Black	T1DM	T1DM	NW	13	0	0	-0.002	0.027	UPenn	1	1	0	0	1
 HPAP-065	F	54	37.47	Caucasian	T2DM (5 yrs) 	T2DM	OB	9.5	0	ND	ND	ND	nPod	1	0	0	0	0
 HPAP-056	M	33	32.89	Caucasian	No HX DIAB	NoDM	OB	5.6	0	0	0.003	0.004	UPenn	1	1	0	1	0
 HPAP-049	M	29	37.2	Caucasian	No HX DIAB	NoDM	OB	5.4	412	0	0.001	0.005	nPod	1	1	0	1	0
-HPAP-068	F	20	30.85	Caucasian 	T1DM (7yrs)	T1DM 	OB	13.9	37	18	0.212	-0.004	nPod	0	0	0	0	0
+HPAP-068	F	20	30.85	Caucasian 	T1DM (7yrs)	T1DM	OB	13.9	37	18	0.212	-0.004	nPod	0	0	0	0	0
 HPAP-069	F	47	24.86	Caucasian 	No HX DIAB	NoDM	NW	6.7	0	0	0.001	0.002	UPenn	0	1	0	1	2
 HPAP-070	M	55	17.09	African american/Black	T2DM (15 yrs)	T2DM	NW	7	0	0	0.001	0.002	nPod	1	0	0	0	0
-HPAP-071	F	12	15.42	Caucasian	T1DM (3 yrs)	T1DM 	NW	9.8	2	245	0.071	0.013	nPod	1	0	0	0	0
+HPAP-071	F	12	15.42	Caucasian	T1DM (3 yrs)	T1DM	NW	9.8	2	245	0.071	0.013	nPod	1	0	0	0	0
 HPAP-072	M	19	23.1	Hispanic	"No HX DIAB, GAD+"	NoDM	NW	5.6	204	0	0.002	0.002	nPod	1	1	0	0	1
-HPAP-073	M	24	25.92	Hispanic	T1DM (8 yr duration)	T1DM 	OW	8.2	1	0	0	0	nPod	0	0	0	0	0
+HPAP-073	M	24	25.92	Hispanic	T1DM (8 yr duration)	T1DM	OW	8.2	1	0	0	0	nPod	0	0	0	0	0
 HPAP-074	F	40	36.88	Caucasian	No Hx DIAB	NoDM	OB	6.3	5	0	-0.001	-0.004	UPenn	1	0	0	0	0
 HPAP-075	M	35	27.52	Caucasian	No Hx DIAB	NoDM	OW	6	ND	ND	ND	ND	UPenn	1	1	0	1	0
 HPAP-076	F	46	33.98	African american/Black	T2DM (2 yrs duration)	T2DM	OB	7.3	0	0	-0.002	-0.004	nPod	0	0	0	0	0
@@ -82,25 +82,25 @@ HPAP-052	M	27	38.72	African american/Black	No HX DIAB	NoDM	OB	5.2	0	0	0.001	0	UP
 HPAP-081	F	45	28.91	Caucasian	T2DM (>10 yr duration)	T2DM	OW	7.9	0	0	0.068	-0.002	nPod	1	1	0	0	0
 HPAP-082	M	25	23.96	Caucasian	No Hx DIAB	NoDM	NW	5.6	0	1	-0.005	-0.003	nPod	1	0	0	0	0
 HPAP-083	M	45	35.62	African american/Black	T2DM (2 yr duration)	T2DM	OB	5	0	0	0	0.002	UPenn	1	1	0	1	0
-HPAP-084	F	12	18.5	Caucasian	T1DM (recent onset)	T1DM 	NW	13.3	27	139	-0.001	0.116	nPod	1	1	2	0	0
+HPAP-084	F	12	18.5	Caucasian	T1DM (recent onset)	T1DM	NW	13.3	27	139	-0.001	0.116	nPod	1	1	2	0	0
 HPAP-085	F	48	38.78	Caucasian	T2DM (5-6 yr duration)	T2DM	OB	7.3	0	0	-0.002	0.002	UPenn	1	1	0	0	0
 HPAP-086	M	47	33.19	African american/Black	T2DM (5 years)	T2DM	OB	5.3	18	0	-0.001	0.001	nPod	0	0	0	0	0
-HPAP-087	F	15	19.3	Caucasian	T1DM (6-10 years)	T1DM 	NW	10.4	0	0	0.147	-0.006	nPod	1	0	0	0	0
+HPAP-087	F	15	19.3	Caucasian	T1DM (6-10 years)	T1DM	NW	10.4	0	0	0.147	-0.006	nPod	1	0	0	0	0
 HPAP-088	M	37	32.81	Caucasian	T2DM (<1yr)	T2DM	OB	10.3	0	0	0.002	-0.003	nPod	1	1	0	0	0
-HPAP-089	M	27	21.72	Hispanic	T1DM	T1DM 	NW	10.4	608	13	-0.004	0.002	nPod	0	0	0	0	0
+HPAP-089	M	27	21.72	Hispanic	T1DM	T1DM	NW	10.4	608	13	-0.004	0.002	nPod	0	0	0	0	0
 HPAP-090	F	59	32.23	Caucasian	T2DM (4 yr duration)	T2DM	OB	8.7	24	0	-0.004	-0.002	nPod	1	0	0	1	0
 HPAP-091	F	50	35.58	Hispanic	T2DM (<1yr)	T2DM	OB	6.9	0	0	-0.007	-0.001	nPod	1	0	0	0	0
 HPAP-092	M	21	25.59	Hispanic	"No HX DIAB, GAD+"	NoDM	OW	5.6	38	0	-0.001	-0.003	nPod	1	1	0	0	0
 HPAP-093	F	50	34.98	Caucasian	No HX DIAB	NoDM	OB	4.9	0	0	-0.003	-0.004	nPod	1	0	0	0	0
-HPAP-094	F	38	37.84	Caucasian	"T1DM or MODY (20 yrs, undetermined)"	T1DM 	OB	5	0	0	-0.002	-0.005	UPenn	0	0	0	0	0
+HPAP-094	F	38	37.84	Caucasian	"T1DM or MODY (20 yrs, undetermined)"	T1DM	OB	5	0	0	-0.002	-0.005	UPenn	0	0	0	0	0
 HPAP-095	F	23	34.32	African american/Black	No HX DIAB	NoDM	OB	4.9	0	0	0.001	-0.004	UPenn	0	0	0	1	0
 HPAP-096	F	56	38.7	Hispanic	T2DM (1 year)	T2DM	OB	7.7	13	0	-0.001	-0.003	nPod	0	0	0	1	0
 HPAP-097	F	54	29.17	African american/Black	No HX DIAB	NoDM	OW	5.4	0	0	-0.004	0.008	UPenn	0	0	0	1	0
-HPAP-098	F	30	34.9	Caucasian	T1DM	T1DM 	OB	11	8	0	0.001	0	UPenn	0	0	0	0	0
+HPAP-098	F	30	34.9	Caucasian	T1DM	T1DM	OB	11	8	0	0.001	0	UPenn	0	0	0	0	0
 HPAP-099	F	28	24.7	Hispanic	No HX DIAB	NoDM	NW	5	0	0	-0.008	0	UPenn	1	1	0	0	0
 HPAP-100	M	41	28.83	Caucasian	T2DM (7-8 years)	T2DM	OW	10.7	1	0	0.005	-0.002	nPod	1	1	0	1	0
 HPAP-059	M	35	37.96	Caucasian	No HX DIAB	NoDM	OB	5.1	0	0	0.003	0.003	UPenn	1	1	0	0	0
-HPAP-102	M	18	20.65	Caucasian	T1DM (6 years)	T1DM 	NW	6.7	0	0	0.055	-0.006	nPod	0	0	0	0	0
+HPAP-102	M	18	20.65	Caucasian	T1DM (6 years)	T1DM	NW	6.7	0	0	0.055	-0.006	nPod	0	0	0	0	0
 HPAP-101	F	55	38.01	Hispanic	No HX DIAB	NoDM	OB	5	0	0	-0.001	-0.002	nPod	1	1	0	1	0
 HPAP-104	M	4	20.63	Hispanic	No HX DIAB	NoDM	NW	4.7	0	0	-0.001	-0.001	UPenn	1	1	0	0	0
 HPAP-105	F	51	28.1	Hispanic	No HX DIAB	NoDM	OW	5.2	0	0	0.002	-0.004	nPod	1	1	0	0	0
@@ -109,24 +109,24 @@ HPAP-107	M	15	23.59	Caucasian	"No HX DIAB, GAD+"	NoDM	NW	5.3	848	21	0.004	0.071	
 HPAP-108	M	42	33	African american/Black	T2DM	T2DM	OB	10.8	33	0	0.001	-0.001	nPod	1	1	0	0	0
 HPAP-109	F	59	29.49	Hispanic	T2DM (<5yrs)	T2DM	OW	7.5	0	0	0	0.001	nPod	1	1	0	0	0
 HPAP-110	M	31	36.29	Caucasian	No HX DIAB	NoDM	OB	5.4	0	0	0.001	-0.002	UPenn	0	0	0	0	0
-HPAP-111	M	63	24.25	Caucasian	T2DM	T2DM 	NW	6.8	0	0	-0.002	-0.001	UPenn	0	0	0	0	0
+HPAP-111	M	63	24.25	Caucasian	T2DM	T2DM	NW	6.8	0	0	-0.002	-0.001	UPenn	0	0	0	0	0
 HPAP-112	F	53	29.7	Caucasian	No Hx Diab	NoDM	OW	5.6	0	0	0.002	-0.002				3		
-HPAP-113	M	9	15.92	Caucasian	T1DM (recent DKA)	T1DM 	NW	11.1	0	0	0	0.137	nPod	0	0	1	0	0
+HPAP-113	M	9	15.92	Caucasian	T1DM (recent DKA)	T1DM	NW	11.1	0	0	0	0.137	nPod	0	0	1	0	0
 HPAP-114	F	21	25.66	Caucasian	No HX DIAB	NoDM	OW	5.3	531	0	-0.003	-0.001	nPod	0	0	0	0	0
-HPAP-115	M	29	22.03	Caucasian	T1DM	T1DM 	NW	7.6	79	0	0	-0.002						
+HPAP-115	M	29	22.03	Caucasian	T1DM	T1DM	NW	7.6	79	0	0	-0.002						
 HPAP-116	F	41	31.63	Hispanic	No HX Diabetes	NoDM	OB	5.3	0	0	0	0	nPod	0	0	0	0	0
 HPAP-117	M	64	32.39	African american/Black	No HX Diabetes	NoDM	OB	5.7	0	0	-0.002	-0.001	nPod	0	0	2	0	0
 HPAP-118	F	51	33.01	Caucasian	No HX Diabetes	NoDM	OB	5.7	0	0	-0.001	-0.002	Penn	0	0	0	0	0
 HPAP-119	F	48	29.45	Hispanic	No HX Diabetes	NoDM	OW	4.8	0	0	0.001	-0.003	nPod	0	0	0	0	0
-HPAP-120	F	63	29.6	Hispanic	T2DM	T2DM 	OW	7.4	0	0	0	0.002	nPod	0	0	0	0	0
+HPAP-120	F	63	29.6	Hispanic	T2DM	T2DM	OW	7.4	0	0	0	0.002	nPod	0	0	0	0	0
 HPAP-121	M	42	28.85	Hispanic	No HX Diabetes	NoDM	OW	5.3	0	0	-0.002	-0.004	nPod	0	0	0	0	0
 HPAP-122	F	21	30.05	Caucasian	No HX Diabetes	NoDM	OB	5.5	1	0	0.002	-0.003	Penn	0	0	0	0	0
-HPAP-123	M	25	21.35	Caucasian	T1DM	T1DM 	NW	9.7	161	0	0.357	0.031		0	0	2	0	0
-HPAP-124	M	47	30.96	Caucasian	T2DM	T2DM 	OB	5.4	0	0	-0.004	0.008		0	0	0	0	0
+HPAP-123	M	25	21.35	Caucasian	T1DM	T1DM	NW	9.7	161	0	0.357	0.031		0	0	2	0	0
+HPAP-124	M	47	30.96	Caucasian	T2DM	T2DM	OB	5.4	0	0	-0.004	0.008		0	0	0	0	0
 HPAP-125	M	38	24.17	Hispanic	No HX DIAB	NoDM	NW	5.4	0	0	-0.002	0.001		0	0	0	0	0
 HPAP-126	F	50	31.01	Hispanic	T2DM	T2DM	OB	6.6	0	0	0.002	-0.002		0	0	0	0	0
 HPAP-127	M	53	31	Hispanic	No HX DIAB	NoDM	OB	5.5	0	0	0.001	0.003		0	0	0	0	0
 HPAP-128	M	49	30.12	African american/Black	No HX DIAB	NoDM	OB	5.2	0	0	0.002	-0.003		0	0	0	0	0
 HPAP-129	F	19	18.01	Hispanic	No HX DIAB	NoDM	NW	5.2	0	0	0.001	-0.002		0	0	0	0	0
-HPAP-130	F	32	32.65	Caucasian	T1DM	T1DM 	OB	8	96	0	0.031	0.001		0	0	0	0	0
+HPAP-130	F	32	32.65	Caucasian	T1DM	T1DM	OB	8	96	0	0.031	0.001		0	0	0	0	0
 HPAP-131	M	23	22.5	Hispanic	No HX DIAB	NoDM	NW	5.1	0	0	-0.004	-0.002		0	0	0	0	0
