@@ -19,7 +19,7 @@ library(cowplot)
 # Global parameters -------------------------------------------------------
 
 ## frequently modified
-projectName <- "T2DvCTRL_scRNA"
+projectName <- "ObesityL_scRNA"
 workingdir <- "./"
 path_to_data <- "PancDB_data/cellranger_scRNA"
 regression.vars <- NULL

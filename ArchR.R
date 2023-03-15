@@ -1,10 +1,11 @@
 
 # Set up ------------------------------------------------------------------
 
-projectName <- "ArchRFiles"
-path_to_data <- c(list.dirs("/data/CRGGH/heustonef/hpapdata/cellranger_snATAC", full.names = TRUE, recursive = FALSE))
+projectName <- "Obesity_scHPAP"
+path_to_data <- c(list.dirs("/Users/heustonef/Desktop/PancDB_Data/scATAC_noBams/", full.names = TRUE, recursive = FALSE))
 working.dir <- "/Users/heustonef/Desktop/Obesity/snATAC"
-nThreads <- parallelly::availableCores() 
+records.dir <- "~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
+nThreads <- parallelly::availableCores() - 4
 res <- 0.5
 testable.factors <- c("BMI", "obesity") # factors to query during Harmony regression
 
@@ -21,9 +22,13 @@ addArchRThreads(threads = nThreads)
 
 
 setwd(working.dir)
-sink(paste0(projectName, "_sessionInfo.txt"))
+sink(paste0(records.dir, projectName, "_sessionInfo.txt"))
 sessionInfo()
 sink()
+
+
+
+# Generate arrowFiles -----------------------------------------------------
 
 for(i in path_to_data){
 	ifelse(file.exists(paste0(i, "/outs")),"", path_to_data <-path_to_data[!path_to_data %in% i])
@@ -44,21 +49,26 @@ saveRDS(arrowfiles, paste0(projectName, "-ArrowFiles.RDS"))
 
 # Subset Arrow Files ------------------------------------------------------
 
-arrowfiles <- readRDS(paste0(projectName, "-ArrowFiles.RDS"))
+arrowfiles <- readRDS("ArchRFiles-ArrowFiles.RDS")
 arrowfiles <- sort(arrowfiles)
-metadata <- read.table(file = "../HPAPMetaData.txt", header = TRUE, sep = "\t")[, 1:12] # import only columns with relevant metadata
+metadata <- read.table(file = paste0(records.dir, "HPAPMetaData.txt"), header = TRUE, sep = "\t")
 rownames(metadata) <- metadata$DonorID
+
+# Define subset
+# as of 2023.03.10 we are taking all "NoDM" donors regardless of BMI
+# > only a little annoyed because it took me far too long to figure out the logic for the original cutoffs
+
 for(i in arrowfiles){
 	x <- strsplit(i, "_")[[1]][1]
-	if(!(metadata[x, "SimpDisease"] == "NoDM" & (metadata[x, "BMI"] < 25 | metadata[x, "BMI"] > 30))){
+	if(!(metadata[x, "SimpDisease"] == "NoDM" & metadata[x, "scATAC"] >0)){
 		arrowfiles <- arrowfiles[arrowfiles!=i]}
 }
-
+arrowfiles <- paste0("ArrowFiles/", arrowfiles)
 
 # Identify doublets -------------------------------------------------------
 
 
-dbltScores <- addDoubletScores(input = arrowfiles, k = 10, knnMethod = "UMAP", LSIMethod = 1) #25 samples = 40min
+dbltScores <- addDoubletScores(input = (arrowfiles), k = 10, knnMethod = "UMAP", LSIMethod = 1) #25 samples = 40min
 
 
 # Create arch.proj -----------------------------------------------------
@@ -110,9 +120,9 @@ arch.proj@cellColData[,names(metadata)] <- lapply(names(metadata), function(x){
 	arch.proj@cellColData[[x]] <- metadata[match(vapply(strsplit(as.character(arch.proj$Sample), "_"), `[`, 1, FUN.VALUE = character(1)), metadata$DonorID), x]
 	}
 )
-arch.proj$obesity <- NA
-arch.proj$obesity[arch.proj$BMI >=30] <- 'obese'
-arch.proj$obesity[arch.proj$BMI <= 25] <- 'nonobese'
+# arch.proj$obesity <- NA
+# arch.proj$obesity[arch.proj$BMI >=30] <- 'obese'
+# arch.proj$obesity[arch.proj$BMI <= 25] <- 'nonobese'
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 # loadArchRProject(path = working.dir)
 # saveRDS(arch.proj, paste0(projectName, "_noFilters.RDS"))
