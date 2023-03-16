@@ -1,8 +1,5 @@
 # Run analysis on single cell RNA data
 # Sample data is from [PandDB](https://hpap.pmacs.upenn.edu/)
-# Patient HPAP-051 
-# Demographics: female, T2D, BMI >31
-# Available sequencing data: single cell [RNA_rep1, ATAC_alpha/beta(?)]; bulk [RNA, ATAC]
 
 
 ##NB: 
@@ -19,23 +16,22 @@ library(cowplot)
 # Global parameters -------------------------------------------------------
 
 ## frequently modified
-projectName <- "ObesityL_scRNA"
-workingdir <- "./"
-path_to_data <- "PancDB_data/cellranger_scRNA"
-regression.vars <- NULL
+projectName <- "Obesity_scRNA"
+workingdir <- "/Users/heustonef/Desktop/Obesity/scRNA/"
+path_to_data <- "/Users/heustonef/Desktop/PancDB_data/scRNA_noBams"
+regression.vars <- c("orig.ident", "SampleSex", "SampleAge")
 cum.var.thresh <- 80
 resolution <- 0.5
 
 ## infrequently modified
 do.sctransform <- TRUE
-run.jackstraw <- TRUE
+run.jackstraw <- FALSE
 min.cells <- 3
 min.features <- 200
 
 ##load local functions
-sourceable.functions <- list.files(path = "RFunctions", pattern = "*.R", full.names = TRUE)
+sourceable.functions <- list.files(path = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions", pattern = "*.R", full.names = TRUE)
 invisible(sapply(sourceable.functions, source))
-
 
 
 
@@ -53,6 +49,15 @@ sc.data <- sapply(list.dirs(path = path_to_data, recursive = FALSE, full.names =
 									basename, 
 									USE.NAMES = TRUE)
 
+metadata <- read.table(file = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/HPAPMetaData.txt", header = TRUE, sep = "\t")
+rownames(metadata) <- metadata$DonorID
+
+for(i in sc.data){
+	x <- strsplit(i, "_")[[1]][1]
+	if(!(metadata[x, "SimpDisease"] == "NoDM" & metadata[x, "scRNA"] > 0)){
+		sc.data <- sc.data[sc.data!=i]}
+}
+
 
 object.list <- c()
 for(i in 1:length(sc.data)){
@@ -61,14 +66,14 @@ for(i in 1:length(sc.data)){
 																			 project = projectName, 
 																			 min.cells = min.cells, 
 																			 min.features = min.features)
+	object.list[[i]]$orig.ident <- sc.data[[i]]
 	print(paste("finished", sc.data[[i]]))
 }
 
-seurat.object <- merge(object.list[[1]], y = object.list[2:length(object.list)], add.cell.ids = names(object.list), project = projectName)
+seurat.object <- merge(object.list[[1]], y = object.list[2:length(object.list)], add.cell.ids = names(object.list))
 
 ##add metadata
-metadata.df <- read.csv(file = "PancDB_data/20220801MetaData.csv", header = TRUE, row.names = 1)
-seurat.object <- AssignMetadata(metadata.df = metadata.df, seurat.object = seurat.object) # created "AssignMetadata" function
+seurat.object <- AssignMetadata(metadata.df = metadata, seurat.object = seurat.object) # created "AssignMetadata" function
 
 # QC ----------------------------------------------------------------------
 

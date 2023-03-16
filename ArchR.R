@@ -1,17 +1,25 @@
+# Notes
+
+# Need to exclude HPAP-043. Has 32 cells
 
 # Set up ------------------------------------------------------------------
 
 projectName <- "Obesity_scHPAP"
-path_to_data <- c(list.dirs("/Users/heustonef/Desktop/PancDB_Data/scATAC_noBams/", full.names = TRUE, recursive = FALSE))
-working.dir <- "/Users/heustonef/Desktop/Obesity/snATAC"
-records.dir <- "~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
-nThreads <- parallelly::availableCores() - 4
+#path_to_data <- c(list.dirs("/Users/heustonef/Desktop/PancDB_Data/scATAC_noBams/", full.names = TRUE, recursive = FALSE))
+# working.dir <- "/Users/heustonef/Desktop/Obesity/snATAC"
+# records.dir <- "~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
+path_to_data <- c(list.dirs("/data/CRGGH/heustonef/hpapdata/cellranger_snATAC/cellrangerOuts/", full.names = TRUE, recursive = FALSE))
+working.dir <- "/data/CRGGH/heustonef/hpapdata/cellranger_snATAC"
+records.dir <- working.dir
+nThreads <- parallelly::availableCores()
 res <- 0.5
 testable.factors <- c("BMI", "obesity") # factors to query during Harmony regression
 
 
 # Libraries ---------------------------------------------------------------
 
+library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
+library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
 library(ArchR)
 library(harmony)
 addArchRGenome("hg38")
@@ -38,10 +46,10 @@ names(path_to_data) <- sapply(path_to_data, basename)
 arrowfiles <- createArrowFiles(
 	inputFiles = paste0(path_to_data, "/outs/fragments.tsv.gz"),
 	sampleNames = names(path_to_data),
-	filterTSS = 4, 
-	filterFrags = 1000, 
+	minTSS = 4, 
+	minFrags = 1000, 
 	addTileMat = TRUE,
-	addGeneScoreMat = TRUE
+	addGeneScoreMat = TRUE, force = TRUE
 )
 saveRDS(arrowfiles, paste0(projectName, "-ArrowFiles.RDS"))
 
@@ -51,29 +59,38 @@ saveRDS(arrowfiles, paste0(projectName, "-ArrowFiles.RDS"))
 
 arrowfiles <- readRDS("ArchRFiles-ArrowFiles.RDS")
 arrowfiles <- sort(arrowfiles)
-metadata <- read.table(file = paste0(records.dir, "HPAPMetaData.txt"), header = TRUE, sep = "\t")
+# metadata <- read.table(file = paste0(records.dir, "HPAPMetaData.txt"), header = TRUE, sep = "\t")
+metadata <- read.table(file = "/data/CRGGH/heustonef/hpapdata/cellranger_snATAC/HPAPMetaData.txt", header = TRUE, sep = "\t")
 rownames(metadata) <- metadata$DonorID
 
 # Define subset
 # as of 2023.03.10 we are taking all "NoDM" donors regardless of BMI
 # > only a little annoyed because it took me far too long to figure out the logic for the original cutoffs
 
+# At this point exclude HPAP-043
+
 for(i in arrowfiles){
 	x <- strsplit(i, "_")[[1]][1]
 	if(!(metadata[x, "SimpDisease"] == "NoDM" & metadata[x, "scATAC"] >0)){
 		arrowfiles <- arrowfiles[arrowfiles!=i]}
+	arrowfiles <- arrowfiles[arrowfiles != "HPAP-043_FGC2061.arrow"]
 }
-arrowfiles <- paste0("ArrowFiles/", arrowfiles)
+# arrowfiles <- paste0("ArrowFiles/", arrowfiles)
 
 # Identify doublets -------------------------------------------------------
 
-
+# dbltScores <- c()
+# for(i in arrowfiles){
+# 	print(i)
+# 	dbltScores <- c(dbltScores, addDoubletScores(input = i, k = 10, knnMethod = "UMP", LSIMethod = 1))
+# }
+# 
 dbltScores <- addDoubletScores(input = (arrowfiles), k = 10, knnMethod = "UMAP", LSIMethod = 1) #25 samples = 40min
 
 
 # Create arch.proj -----------------------------------------------------
 
-arch.proj <- ArchRProject(ArrowFiles = arrowfiles, outputDirectory = working.dir, copyArrows = TRUE)
+arch.proj <- ArchRProject(ArrowFiles = arrowfiles, outputDirectory = working.dir, copyArrows = FALSE)
 arch.proj
 paste0("Memory Size = ", rounds(object.size(arch.proj)/10^6, 3), " MB")
 getAvailableMatrices(arch.proj)
@@ -118,7 +135,7 @@ plotGroups(
 
 arch.proj@cellColData[,names(metadata)] <- lapply(names(metadata), function(x){
 	arch.proj@cellColData[[x]] <- metadata[match(vapply(strsplit(as.character(arch.proj$Sample), "_"), `[`, 1, FUN.VALUE = character(1)), metadata$DonorID), x]
-	}
+}
 )
 # arch.proj$obesity <- NA
 # arch.proj$obesity[arch.proj$BMI >=30] <- 'obese'
@@ -130,8 +147,11 @@ saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TR
 # Filter  ---------------------------------------------------------
 
 arch.proj <- filterDoublets(ArchRProj = arch.proj, cutEnrich = 1, filterRatio = 1.5) # see notes
-arch.proj <- arch.proj[which(arch.proj$TSSEnrichment > 8 & arch.proj$nFrags > 1000 & arch.proj$nFrags<40000)]
-	# >1000 : https://www.nature.com/articles/s41586-021-03604-1#Sec9
+arch.proj <- arch.proj[which(arch.proj$TSSEnrichment > 8 & 
+														 	arch.proj$nFrags > 1000 & 
+														 	arch.proj$nFrags<40000 &
+														 	arch.proj$BlacklistRatio < 0.03)]
+# >1000 : https://www.nature.com/articles/s41586-021-03604-1#Sec9
 
 arch.proj <- addIterativeLSI(
 	ArchRProj = arch.proj,
@@ -169,7 +189,6 @@ arch.proj <- addUMAP(ArchRProj = arch.proj,
 										 force = TRUE)
 arch.proj <- addClusters(input = arch.proj, reducedDims = "Harmony", method = "Seurat", name = paste0("Harmony_res", as.character(res)), resolution = res, force = TRUE)
 
-
 plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "obesity", embedding = "UMAP_harmony")
 p1 <- plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "obesity", embedding = "UMAP_harmony", randomize = TRUE)
 p2 <- plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = paste0("Harmony_res", as.character(res)), embedding = "UMAP_harmony")
@@ -206,8 +225,8 @@ saveRDS(markergenes, file = paste0(projectName, "-markergenes.RDS"))
 markerList$C1
 
 #With MAGIC
-arch.proj <- addImputeWeights(ArchRProj = arch.proj, reducedDims = "Harmony")
-saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
+# arch.proj.magic <- addImputeWeights(ArchRProj = arch.proj, reducedDims = "Harmony")
+# saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
 
 # Calling peaks -----------------------------------------------------------
@@ -315,7 +334,7 @@ arch.proj <- loadArchRProject(working.dir)
 pal <- paletteDiscrete(values = seurat.object$SCT_snn_res.0.5)
 
 plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "predictedGroup_Un", pal = pal) +
-theme_ArchR(legendTextSize = 10)
+	theme_ArchR(legendTextSize = 10)
 
 
 
@@ -433,16 +452,16 @@ for(i in 1:length(panc.markers)){
 	gene.set <- panc.markers[i]
 	
 	heatmap.islets <- plotMarkerHeatmap(seMarker = arch.markers, 
-																		cutOff = "FDR <= 0.01 & Log2FC >=1.25",
-																		labelMarkers = unlist(gene.set),
-																		transpose = TRUE)
-
-
+																			cutOff = "FDR <= 0.01 & Log2FC >=1.25",
+																			labelMarkers = unlist(gene.set),
+																			transpose = TRUE)
+	
+	
 	heatmap.plot <- ComplexHeatmap::draw(heatmap.islets, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 	
 	png(filename = paste0(projectName, "-UMAP_harmony-res", as.character(res), "-", as.character(chart.name), "Markersheatmap.png"), height= 800, width = 1600, bg = "transparent", res = 100)
 	plot(heatmap.plot)
 	dev.off()
-
+	
 	
 }
