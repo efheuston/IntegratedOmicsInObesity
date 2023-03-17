@@ -67,27 +67,35 @@ for(i in 1:length(sc.data)){
 																			 min.cells = min.cells, 
 																			 min.features = min.features)
 	object.list[[i]]$orig.ident <- sc.data[[i]]
+	object.list[[i]] <- AssignMetadata(metadata.df = metadata, seurat.object = object.list[[i]])
+	object.list[[i]] <- PercentageFeatureSet(object.list[[i]], pattern = "MT-", col.name = "percent.mt")
+	
+	object.list[[i]] <- subset(object.list[[i]], 
+													subset = nFeature_RNA >= 200 &
+														nFeature_RNA <= 2500 &
+														percent.mt <= 5)
+	
 	print(paste("finished", sc.data[[i]]))
 }
 
 seurat.object <- merge(object.list[[1]], y = object.list[2:length(object.list)], add.cell.ids = names(object.list))
 
 ##add metadata
-seurat.object <- AssignMetadata(metadata.df = metadata, seurat.object = seurat.object) # created "AssignMetadata" function
+ # created "AssignMetadata" function
 
 # QC ----------------------------------------------------------------------
-
-seurat.object[["percent.mt"]] <- PercentageFeatureSet(seurat.object, pattern = "MT-")
-
-##filter by feature count and perent.mito
-seurat.object <- subset(seurat.object, 
-												subset = nFeature_RNA >= 200 &
-												nFeature_RNA <= 2500 &
-												percent.mt <= 5)
-filtered.cells <- length(rownames(seurat.object@meta.data))-length(rownames(seurat.object@meta.data))
-print(paste("filtered out", filtered.cells, "cells"))
-seurat.object
-
+# 
+# seurat.object[["percent.mt"]] <- PercentageFeatureSet(seurat.object, pattern = "MT-")
+# 
+# ##filter by feature count and perent.mito
+# seurat.object <- subset(seurat.object, 
+# 												subset = nFeature_RNA >= 200 &
+# 												nFeature_RNA <= 2500 &
+# 												percent.mt <= 5)
+# filtered.cells <- length(rownames(seurat.object@meta.data))-length(rownames(seurat.object@meta.data))
+# print(paste("filtered out", filtered.cells, "cells"))
+# seurat.object
+# 
 ##plot qc stats
 VlnPlot(seurat.object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
 plot1<- FeatureScatter(seurat.object, feature1 = "nCount_RNA", feature2 = "percent.mt")
@@ -122,7 +130,9 @@ if(do.sctransform == FALSE){ # standard method
 	
 } else if(do.sctransform == TRUE){
 	print("Performing SCTransform")
-	seurat.object <- SCTransform(seurat.object, method = "glsGamPoi", vars.to.regress = regression.vars, verbose = TRUE)
+	object.list <- SplitObject(seurat.object, split.by = "orig.ident")
+	object.list <- lapply(X = object.list, FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2")
+	# seurat.object <- SCTransform(seurat.object, method = "glmGamPoi", vars.to.regress = regression.vars, verbose = TRUE)
 } else {
 	print("Must set do.sctransform to logical")
 }
