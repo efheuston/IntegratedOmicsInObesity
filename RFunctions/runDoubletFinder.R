@@ -13,9 +13,11 @@
 # DoubletFinder -----------------------------------------------------------
 
 library(DoubletFinder)
+library(ggplot2)
 
 runDoubletFinder <- function(seurat.object = NULL, sctransformed = NULL, tot.var = NULL, predicted.doubletRate = 0.05){
 	
+	print("running DoubletFinder")
 	#Run PCA	
 	seurat.object <- RunPCA(seurat.object, features = VariableFeatures(object = seurat.object))
 

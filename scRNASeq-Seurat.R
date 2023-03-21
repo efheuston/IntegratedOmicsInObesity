@@ -11,7 +11,7 @@ projectName <- "Obesity_scRNA"
 regression.vars <- c("orig.ident", "SampleSex", "SampleAge")
 cum.var.thresh <- 95
 resolution <- 0.5
-comp.type <- "biowulf" # one of macbookPro, biowulf, or workPC
+comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
 
 ## infrequently modified
 do.sctransform <- TRUE
@@ -19,7 +19,8 @@ do.doubletFinder <- TRUE
 run.jackstraw <- FALSE
 min.cells <- 3
 min.features <- 200
-predicted.doubletRage <- 0.05
+doublet.var.thresh <- 80
+predicted.doubletRate <- 0.05
 
 # Directories -------------------------------------------------------------
 
@@ -141,8 +142,9 @@ if(do.sctransform == FALSE){ # standard method
 	object.list <- SplitObject(seurat.object, split.by = "orig.ident")
 	object.list <- lapply(X = object.list, 
 												FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2")
+	
 	object.list <- lapply(X = object.list, 
-												FUN = runDoubletFinder, seurat.object = x, sctransformed = TRUE, tot.var = cum.var.thresh, predicted.doubletRate = predicted.doubletRage)
+												FUN = runDoubletFinder, sctransformed = TRUE, tot.var = doublet.var.thresh, predicted.doubletRate = predicted.doubletRate)
 	
 	integration.features <- SelectIntegrationFeatures(object.list = object.list, verbose = TRUE)
 	object.list <- PrepSCTIntegration(object.list = object.list, anchor.features = integration.features, verbose = TRUE)
