@@ -7,17 +7,19 @@
 
 # Global parameters -------------------------------------------------------
 
-projectName <- "Obesity_scRNA_sctMergedObject"
+projectName <- "Obesity_scRNA"
 regression.vars <- c("orig.ident", "SampleSex", "SampleAge")
 cum.var.thresh <- 80
 resolution <- 0.5
 comp.type <- "biowulf" # one of macbookPro, biowulf, or workPC
 
 ## infrequently modified
-do.sctransform <- FALSE
+do.sctransform <- TRUE
+do.doubletFinder <- TRUE
 run.jackstraw <- FALSE
 min.cells <- 3
 min.features <- 200
+predicted.doubletRage <- 0.05
 
 # Directories -------------------------------------------------------------
 
@@ -98,18 +100,7 @@ for(i in 1:length(sc.data)){
 seurat.object <- merge(object.list[[1]], y = object.list[2:length(object.list)], add.cell.ids = names(object.list))
 
 # QC ----------------------------------------------------------------------
-# 
-# seurat.object[["percent.mt"]] <- PercentageFeatureSet(seurat.object, pattern = "MT-")
-# 
-# ##filter by feature count and perent.mito
-# seurat.object <- subset(seurat.object, 
-# 												subset = nFeature_RNA >= 200 &
-# 												nFeature_RNA <= 2500 &
-# 												percent.mt <= 5)
-# filtered.cells <- length(rownames(seurat.object@meta.data))-length(rownames(seurat.object@meta.data))
-# print(paste("filtered out", filtered.cells, "cells"))
-# seurat.object
-# 
+
 ##plot qc stats
 VlnPlot(seurat.object, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
 plot1<- FeatureScatter(seurat.object, feature1 = "nCount_RNA", feature2 = "percent.mt")
@@ -122,6 +113,9 @@ plot1 + plot2
 
 if(do.sctransform == FALSE){ # standard method
 	print("Performing standard normalization and scaling")
+	if(do.doubletFinder == TRUE){
+		print("Ooops, you haven't coded that yet!")
+	}
 	if(length(regression.vars) >1){
 		print("HEY YOU! You're performing standard scaling on more than 1 regression variable. You should probably be doing SCTransform. Set `do.sctransform` to TRUE")
 	}
@@ -145,7 +139,11 @@ if(do.sctransform == FALSE){ # standard method
 } else if(do.sctransform == TRUE){
 	print("Performing SCTransform")
 	object.list <- SplitObject(seurat.object, split.by = "orig.ident")
-	object.list <- lapply(X = object.list, FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2")
+	object.list <- lapply(X = object.list, 
+												FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2")
+	object.list <- lapply(X = object.list, 
+												FUN = runDoubletFinder, seurat.object = x, sctransformed = TRUE, tot.var = cum.var.thresh, predicted.doubletRate = predicted.doubletRage)
+	
 	integration.features <- SelectIntegrationFeatures(object.list = object.list, verbose = TRUE)
 	object.list <- PrepSCTIntegration(object.list = object.list, anchor.features = integration.features, verbose = TRUE)
 	integration.anchors <- FindIntegrationAnchors(object.list = object.list, anchor.features = integration.features, normalization.method = "SCT", verbose = TRUE)
@@ -180,7 +178,6 @@ if(run.jackstraw == TRUE){
 ElbowPlot(seurat.object)
 
 # account for variance
-
 tot.var <- percent.variance(seurat.object@reductions$pca@stdev, plot.var = FALSE, return.val = TRUE)
 paste0("Num pcs for 80% variance: ", length(which(cumsum(tot.var) <= 80)))
 paste0("Num pcs for 85% variance: ", length(which(cumsum(tot.var) <= 85)))
@@ -220,22 +217,6 @@ saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorInteg
 
 # Doublet prediction ------------------------------------------------------
 # RUN DOUBLETFINDER AFTER UMAPhttps://github.com/kpatel427/YouTubeTutorials/blob/main/singleCell_doublets.R
-
-library(DoubletFinder)
-
-sweep.res <- paramSweep_v3(seurat.object, sct = TRUE) 
-sweep.stats <- summarizeSweep(sweep.res, GT = FALSE) 
-bcmvn <- find.pK(sweep.stats)
-barplot(bcmvn$BCmetric, names.arg = bcmvn$pK, las=2)
-	
-# define the expected number of doublet cellscells.
-nExp <- round(ncol(seurat.object) * 0.05)  # expect 5% doublets
-data.filt <- doubletFinder_v3(data.filt, pN = 0.25, pK = 0.09, nExp = nExp, PCs = 1:10)
-
-
-# https://github.com/GregorySchwartz/multiomics-single-cell-t1d/blob/main/scRNA/FigS1-S3_Seurat_and_DoubletFinder.Rmd
-
-#Scrublet: https://github.com/GregorySchwartz/multiomics-single-cell-t1d/blob/main/scRNA/FigS2A_Scrublet.py
 
 
 # Find cluster biomarkers -------------------------------------------------
