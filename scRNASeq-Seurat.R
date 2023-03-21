@@ -9,7 +9,7 @@
 
 projectName <- "Obesity_scRNA"
 regression.vars <- c("orig.ident", "SampleSex", "SampleAge")
-cum.var.thresh <- 80
+cum.var.thresh <- 95
 resolution <- 0.5
 comp.type <- "biowulf" # one of macbookPro, biowulf, or workPC
 
