@@ -5,6 +5,35 @@
 ##NB: 
 # currently only Scale data (not sctransform) is included. Add "regression.param <- not0" and sctransform equation to regress variables
 
+# Global parameters -------------------------------------------------------
+
+projectName <- "Obesity_scRNA_sctMergedObject"
+regression.vars <- c("orig.ident", "SampleSex", "SampleAge")
+cum.var.thresh <- 80
+resolution <- 0.5
+comp.type <- "biowulf" # one of macbookPro, biowulf, or workPC
+
+## infrequently modified
+do.sctransform <- FALSE
+run.jackstraw <- FALSE
+min.cells <- 3
+min.features <- 200
+
+# Directories -------------------------------------------------------------
+
+if(comp.type == "macbookPro"){
+	workingdir <- "/Users/heustonef/Desktop/Obesity/scRNA/"
+	path_to_data <- "/Users/heustonef/Desktop/PancDB_data/scRNA_noBams"
+	sourceable.functions <- list.files(path = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions", pattern = "*.R", full.names = TRUE)
+	metadata.location <- "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
+} else if(comp.type == "biowulf"){
+	workingdir <- "/data/CRGGH/heustonef/hpapdata/cellranger_scRNA/"
+	path_to_data <- "/data/CRGGH/heustonef/hpapdata/cellranger_scRNA/scRNA_transfer"
+	sourceable.functions <- list.files(path = "/data/CRGGH/heustonef/hpapdata/RFunctions/", pattern = "*.R", full.names = TRUE)
+	metadata.location <- "/data/CRGGH/heustonef/hpapdata/"
+	library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
+	library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
+}
 
 # Load libraries ----------------------------------------------------------
 
@@ -13,27 +42,8 @@ library(Seurat)
 library(patchwork)
 library(cowplot)
 
-# Global parameters -------------------------------------------------------
-
-## frequently modified
-projectName <- "Obesity_scRNA"
-workingdir <- "/Users/heustonef/Desktop/Obesity/scRNA/"
-path_to_data <- "/Users/heustonef/Desktop/PancDB_data/scRNA_noBams"
-regression.vars <- c("orig.ident", "SampleSex", "SampleAge")
-cum.var.thresh <- 80
-resolution <- 0.5
-
-## infrequently modified
-do.sctransform <- TRUE
-run.jackstraw <- FALSE
-min.cells <- 3
-min.features <- 200
-
 ##load local functions
-sourceable.functions <- list.files(path = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions", pattern = "*.R", full.names = TRUE)
 invisible(sapply(sourceable.functions, source))
-
-
 
 # Load data ---------------------------------------------------------------
 
@@ -49,7 +59,14 @@ sc.data <- sapply(list.dirs(path = path_to_data, recursive = FALSE, full.names =
 									basename, 
 									USE.NAMES = TRUE)
 
-metadata <- read.table(file = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/HPAPMetaData.txt", header = TRUE, sep = "\t")
+#remember to drop HPAP-093 b/c it clusters separately
+for(i in sc.data){
+	if(grepl("HPAP-093", i, ignore.case = TRUE)){
+		sc.data <- sc.data[sc.data!=i]
+	}
+}
+
+metadata <- read.table(file = paste0(metadata.location, "HPAPMetaData.txt"), header = TRUE, sep = "\t")
 rownames(metadata) <- metadata$DonorID
 
 for(i in sc.data){
@@ -63,25 +80,22 @@ object.list <- c()
 for(i in 1:length(sc.data)){
 	object.list[[i]] <- Read10X_h5(paste0(names(sc.data)[i], "/outs/filtered_feature_bc_matrix.h5"))
 	object.list[[i]] <- CreateSeuratObject(object.list[[i]], 
-																			 project = projectName, 
-																			 min.cells = min.cells, 
-																			 min.features = min.features)
+																				 project = projectName, 
+																				 min.cells = min.cells, 
+																				 min.features = min.features)
 	object.list[[i]]$orig.ident <- sc.data[[i]]
 	object.list[[i]] <- AssignMetadata(metadata.df = metadata, seurat.object = object.list[[i]])
 	object.list[[i]] <- PercentageFeatureSet(object.list[[i]], pattern = "MT-", col.name = "percent.mt")
 	
 	object.list[[i]] <- subset(object.list[[i]], 
-													subset = nFeature_RNA >= 200 &
-														nFeature_RNA <= 2500 &
-														percent.mt <= 5)
+														 subset = nFeature_RNA >= 200 &
+														 	nFeature_RNA <= 2500 &
+														 	percent.mt <= 5)
 	
 	print(paste("finished", sc.data[[i]]))
 }
 
 seurat.object <- merge(object.list[[1]], y = object.list[2:length(object.list)], add.cell.ids = names(object.list))
-
-##add metadata
- # created "AssignMetadata" function
 
 # QC ----------------------------------------------------------------------
 # 
@@ -111,7 +125,7 @@ if(do.sctransform == FALSE){ # standard method
 	if(length(regression.vars) >1){
 		print("HEY YOU! You're performing standard scaling on more than 1 regression variable. You should probably be doing SCTransform. Set `do.sctransform` to TRUE")
 	}
-
+	
 	##normalize
 	seurat.object <- NormalizeData(seurat.object, normalization.method = "LogNormalize", scale.factor = 10000)
 	
@@ -132,20 +146,28 @@ if(do.sctransform == FALSE){ # standard method
 	print("Performing SCTransform")
 	object.list <- SplitObject(seurat.object, split.by = "orig.ident")
 	object.list <- lapply(X = object.list, FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2")
-	# seurat.object <- SCTransform(seurat.object, method = "glmGamPoi", vars.to.regress = regression.vars, verbose = TRUE)
+	integration.features <- SelectIntegrationFeatures(object.list = object.list, verbose = TRUE)
+	object.list <- PrepSCTIntegration(object.list = object.list, anchor.features = integration.features, verbose = TRUE)
+	integration.anchors <- FindIntegrationAnchors(object.list = object.list, anchor.features = integration.features, normalization.method = "SCT", verbose = TRUE)
+	seurat.object <- IntegrateData(anchorset = integration.anchors, verbose = TRUE, preserve.order = FALSE, normalization.method = "SCT")
+	
 } else {
 	print("Must set do.sctransform to logical")
 }
 
+saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
 # Linear dimensional reduction --------------------------------------------
 
-seurat.object <- RunPCA(seurat.object, features = VariableFeatures(object = seurat.object), )
+
+
+seurat.object <- RunPCA(seurat.object, features = VariableFeatures(object = seurat.object))
 
 print(seurat.object[["pca"]], dims = 1:5, nfeatures = 5)
 VizDimLoadings(seurat.object, dims = 1:2, reduction = "pca")
 DimPlot(seurat.object, reduction = "pca")
 DimHeatmap(seurat.object, dims = 1:2, cells = 500, balanced = TRUE)
 
+saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
 
 # Determine dimensionality ------------------------------------------------
 
@@ -170,6 +192,7 @@ if(cum.var.thresh > 0){
 	cluster.dims <- length(which(cumsum(tot.var) <= cum.var.thresh))
 }
 
+saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
 
 # Louvain cluster ---------------------------------------------------------
 
@@ -177,12 +200,42 @@ if(cum.var.thresh > 0){
 seurat.object <- FindNeighbors(seurat.object, dims = 1:cluster.dims)
 seurat.object <- FindClusters(seurat.object, resolution = resolution)
 
+saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
+
+
 ##umap
 seurat.object <- RunUMAP(seurat.object, dims = 1:cluster.dims)
 DimPlot(seurat.object, reduction = "umap", cols = color.palette, label = T, label.size = 7, repel = T)
+DimPlot(seurat.object, reduction = "umap", group.by = "Obesity", cols = color.palette, label = T, label.size = 7, repel = T)
+DimPlot(seurat.object, reduction = "umap", group.by = "orig.ident", cols = color.palette, label = T, label.size = 7, repel = T)
+DimPlot(seurat.object, reduction = "umap", group.by = "DonorID", cols = color.palette, label = T, label.size = 7, repel = T)
+
+
+FeaturePlot(seurat.object, reduction = "umap", features = "BMI")
+
 
 ##saveRDS
-saveRDS(seurat.object, file = paste0(workingdir, projectName, "-seuratObject.RDS"))
+saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
+
+
+# Doublet prediction ------------------------------------------------------
+# RUN DOUBLETFINDER AFTER UMAPhttps://github.com/kpatel427/YouTubeTutorials/blob/main/singleCell_doublets.R
+
+library(DoubletFinder)
+
+sweep.res <- paramSweep_v3(seurat.object, sct = TRUE) 
+sweep.stats <- summarizeSweep(sweep.res, GT = FALSE) 
+bcmvn <- find.pK(sweep.stats)
+barplot(bcmvn$BCmetric, names.arg = bcmvn$pK, las=2)
+	
+# define the expected number of doublet cellscells.
+nExp <- round(ncol(seurat.object) * 0.05)  # expect 5% doublets
+data.filt <- doubletFinder_v3(data.filt, pN = 0.25, pK = 0.09, nExp = nExp, PCs = 1:10)
+
+
+# https://github.com/GregorySchwartz/multiomics-single-cell-t1d/blob/main/scRNA/FigS1-S3_Seurat_and_DoubletFinder.Rmd
+
+#Scrublet: https://github.com/GregorySchwartz/multiomics-single-cell-t1d/blob/main/scRNA/FigS2A_Scrublet.py
 
 
 # Find cluster biomarkers -------------------------------------------------
@@ -190,7 +243,7 @@ saveRDS(seurat.object, file = paste0(workingdir, projectName, "-seuratObject.RDS
 ##find positively expressed markers for all clusters compared to all remaining clusters
 
 markers.seurat.pos <- FindAllMarkers(seurat.object, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
-testing <- markers.seurat.pos %>% 
+markers.seurat.pos <- markers.seurat.pos %>% 
 	group_by(cluster) %>%
 	arrange(desc(abs(avg_log2FC)), .by_group = TRUE)
 
@@ -198,9 +251,10 @@ markers.seurat.all <- FindAllMarkers(seurat.object, only.pos = FALSE, min.pct = 
 markers.seurat.all %>%
 	group_by(cluster) %>%
 	arrange(desc(abs(avg_log2FC)), .by_group = TRUE)
-	
+
 ##create workbook
 markers.table <- openxlsx::createWorkbook()
+
 
 ##write positive markers to table
 openxlsx::addWorksheet(markers.table, sheetName = "PosMarkers")
@@ -211,5 +265,12 @@ openxlsx::addWorksheet(markers.table, sheetName = "AllMarkers")
 openxlsx::writeData(markers.table, sheet = "AllMarkers", x = markers.seurat.all, startCol = 1, startRow = 1, colNames = TRUE)
 
 ##save workbook
-openxlsx::saveWorkbook(wb = markers.table, file = paste0(projectName, "_seuratMarkers.xlsx"), overwrite = FALSE, returnValue = TRUE)
+openxlsx::saveWorkbook(wb = markers.table, file = paste0(projectName, "_seuratMarkers.xlsx"), overwrite = TRUE, returnValue = TRUE)
 
+
+
+
+seurat.object <- readRDS("Obesity_scRNA-AnchorIntegratedObject.RDS")
+
+table(seurat.object$integrated_snn_res.0.5, seurat.object$Obesity)
+DimPlot(seurat.object, pt.size = 1, group.by = "integrated_snn_res.0.5", split.by = "Obesity", ncol = 4, cols = color.palette)
