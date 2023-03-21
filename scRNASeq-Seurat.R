@@ -1,17 +1,13 @@
 # Run analysis on single cell RNA data
 # Sample data is from [PandDB](https://hpap.pmacs.upenn.edu/)
 
-
-##NB: 
-# currently only Scale data (not sctransform) is included. Add "regression.param <- not0" and sctransform equation to regress variables
-
 # Global parameters -------------------------------------------------------
 
 projectName <- "Obesity_scRNA"
 regression.vars <- c("orig.ident", "SampleSex", "SampleAge")
-cum.var.thresh <- 95
+cum.var.thresh <- 80
 resolution <- 0.5
-comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
+comp.type <- "biowulf" # one of macbookPro, biowulf, or workPC
 
 ## infrequently modified
 do.sctransform <- TRUE
@@ -142,7 +138,6 @@ if(do.sctransform == FALSE){ # standard method
 	object.list <- SplitObject(seurat.object, split.by = "orig.ident")
 	object.list <- lapply(X = object.list, 
 												FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2")
-	
 	object.list <- lapply(X = object.list, 
 												FUN = runDoubletFinder, sctransformed = TRUE, tot.var = doublet.var.thresh, predicted.doubletRate = predicted.doubletRate)
 	
