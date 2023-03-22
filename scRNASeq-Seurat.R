@@ -1,11 +1,15 @@
 # Run analysis on single cell RNA data
 # Sample data is from [PandDB](https://hpap.pmacs.upenn.edu/)
 
+
+##NB: 
+# currently only Scale data (not sctransform) is included. Add "regression.param <- not0" and sctransform equation to regress variables
+
 # Global parameters -------------------------------------------------------
 
 projectName <- "Obesity_scRNA"
 regression.vars <- c("orig.ident", "SampleSex", "SampleAge")
-cum.var.thresh <- 80
+cum.var.thresh <- 95
 resolution <- 0.5
 comp.type <- "biowulf" # one of macbookPro, biowulf, or workPC
 
@@ -16,7 +20,7 @@ run.jackstraw <- FALSE
 min.cells <- 3
 min.features <- 200
 doublet.var.thresh <- 80
-predicted.doubletRate <- 0.05
+predicted.doubletRage <- 0.05
 
 # Directories -------------------------------------------------------------
 
@@ -139,7 +143,7 @@ if(do.sctransform == FALSE){ # standard method
 	object.list <- lapply(X = object.list, 
 												FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2")
 	object.list <- lapply(X = object.list, 
-												FUN = runDoubletFinder, sctransformed = TRUE, tot.var = doublet.var.thresh, predicted.doubletRate = predicted.doubletRate)
+												FUN = runDoubletFinder, sctransformed = TRUE, tot.var = doublet.var.thresh, predicted.doubletRate = predicted.doubletRage)
 	
 	integration.features <- SelectIntegrationFeatures(object.list = object.list, verbose = TRUE)
 	object.list <- PrepSCTIntegration(object.list = object.list, anchor.features = integration.features, verbose = TRUE)
@@ -248,7 +252,4 @@ openxlsx::saveWorkbook(wb = markers.table, file = paste0(projectName, "_seuratMa
 
 
 
-seurat.object <- readRDS("Obesity_scRNA-AnchorIntegratedObject.RDS")
 
-table(seurat.object$integrated_snn_res.0.5, seurat.object$Obesity)
-DimPlot(seurat.object, pt.size = 1, group.by = "integrated_snn_res.0.5", split.by = "Obesity", ncol = 4, cols = color.palette)
