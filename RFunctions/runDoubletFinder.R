@@ -64,5 +64,8 @@ seurat.object <- doubletFinder_v3(seurat.object,
 																	nExp = nExp_poi, 
 																	reuse.pANN = FALSE,
 																	sct = sctransformed)
+names(seurat.object@meta.data)[grep("DF.cl", names(seurat.object@meta.data))] <- "DF.classifications"
+names(seurat.object@meta.data)[grep("pANN", names(seurat.object@meta.data))] <- "pANN"
+
 	
 }

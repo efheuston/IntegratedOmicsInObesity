@@ -149,7 +149,7 @@ if(do.sctransform == FALSE){ # standard method
 	object.list <- PrepSCTIntegration(object.list = object.list, anchor.features = integration.features, verbose = TRUE)
 	integration.anchors <- FindIntegrationAnchors(object.list = object.list, anchor.features = integration.features, normalization.method = "SCT", verbose = TRUE)
 	seurat.object <- IntegrateData(anchorset = integration.anchors, verbose = TRUE, preserve.order = FALSE, normalization.method = "SCT")
-	
+	seurat.object <- subset(seurat.object, subset = "DF.classifications" == "Singlet")
 } else {
 	print("Must set do.sctransform to logical")
 }
