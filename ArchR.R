@@ -1,25 +1,33 @@
 # Notes
-
 # Need to exclude HPAP-043. Has 32 cells
 
 # Set up ------------------------------------------------------------------
 
 projectName <- "Obesity_scHPAP"
-#path_to_data <- c(list.dirs("/Users/heustonef/Desktop/PancDB_Data/scATAC_noBams/", full.names = TRUE, recursive = FALSE))
-# working.dir <- "/Users/heustonef/Desktop/Obesity/snATAC"
-# records.dir <- "~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
-path_to_data <- c(list.dirs("/data/CRGGH/heustonef/hpapdata/cellranger_snATAC/cellrangerOuts/", full.names = TRUE, recursive = FALSE))
-working.dir <- "/data/CRGGH/heustonef/hpapdata/cellranger_snATAC"
-records.dir <- working.dir
 nThreads <- parallelly::availableCores()
 res <- 0.5
 testable.factors <- c("BMI", "obesity") # factors to query during Harmony regression
+comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
+
+# Directories -------------------------------------------------------------
+
+if(comp.type == "macbookPro"){
+	working.dir <- "/Users/heustonef/Desktop/Obesity/snATAC/"
+	path_to_data <- c(list.dirs("/Users/heustonef/Desktop/PancDB_Data/scATAC_noBams/", full.names = TRUE, recursive = FALSE))
+	records.dir <- "~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
+	metadata.location <- "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
+} else if(comp.type == "biowulf"){
+	working.dir <- "/data/CRGGH/heustonef/hpapdata/cellranger_snATAC"
+	records.dir <- working.dir
+	path_to_data <- c(list.dirs("/data/CRGGH/heustonef/hpapdata/cellranger_snATAC/cellrangerOuts/", full.names = TRUE, recursive = FALSE))
+	metadata.location <- "/data/CRGGH/heustonef/hpapdata/"
+	library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
+	library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
+}
 
 
 # Libraries ---------------------------------------------------------------
 
-library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
-library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
 library(ArchR)
 library(harmony)
 addArchRGenome("hg38")
@@ -172,9 +180,18 @@ arch.proj <- addIterativeLSI(
 # Run Harmony -------------------------------------------------------------
 
 
-harmony.groups <- colnames(arch.proj@cellColData)
-harmony.groups <- harmony.groups[!(harmony.groups %in% testable.factors)]
-arch.proj <- addHarmony(ArchRProj = arch.proj, reducedDims = "IterativeLSI", name = "Harmony", groupBy = , force = TRUE) # addHarmony "grouby" defines variables to correct for
+# harmony.groups <- colnames(arch.proj@cellColData)
+# harmony.groups <- harmony.groups[!(harmony.groups %in% testable.factors)]
+arch.proj@cellColData <- arch.proj@cellColData[,!names(arch.proj@cellColData) %in% c("TissueSource", "scRNA", "scATAC", "scMultiome", "BulkRNA", "BulkATAC")]
+
+# factorize regression columns
+arch.proj$SampleAge <- as.factor(arch.proj$SampleAge)
+arch.proj <- addHarmony(ArchRProj = arch.proj, 
+												reducedDims = "IterativeLSI", 
+												name = "Harmony", 
+												groupBy = c("Sample", "SampleSex", "SampleAge"), 
+												max.iter.harmony = 20, #did not converge after 10
+												force = TRUE) # addHarmony "grouby" defines variables to correct for
 
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 saveRDS(arch.proj, paste0(projectName, "_Harmony.RDS"))
@@ -189,8 +206,9 @@ arch.proj <- addUMAP(ArchRProj = arch.proj,
 										 force = TRUE)
 arch.proj <- addClusters(input = arch.proj, reducedDims = "Harmony", method = "Seurat", name = paste0("Harmony_res", as.character(res)), resolution = res, force = TRUE)
 
-plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "obesity", embedding = "UMAP_harmony")
-p1 <- plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "obesity", embedding = "UMAP_harmony", randomize = TRUE)
+plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Obesity", embedding = "UMAP_harmony")
+plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "BMI", embedding = "UMAP_harmony", plotAs = "points")
+p1 <- plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Obesity", embedding = "UMAP_harmony", randomize = TRUE)
 p2 <- plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = paste0("Harmony_res", as.character(res)), embedding = "UMAP_harmony")
 ggAlignPlots(p1, p2, type = "h")
 
@@ -231,12 +249,16 @@ markerList$C1
 
 # Calling peaks -----------------------------------------------------------
 arch.proj <- loadArchRProject(working.dir)
+library(BSgenome.Hsapiens.UCSC.hg38)
 pathToMacs2 <- findMacs2()
+BSgenome.Hsapiens.UCSC.hg18 <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 
-arch.proj <- addGroupCoverages(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), force = TRUE)
-arch.proj <- addReproduciblePeakSet(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), pathToMacs2 = pathToMacs2, )
+arch.proj <- addGroupCoverages(arch.proj, groupBy = paste0("Harmony_res", as.character(res)))
+saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
+arch.proj <- addReproduciblePeakSet(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), pathToMacs2 = pathToMacs2)
 
 arch.proj <- addPeakMatrix(arch.proj)
+saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
 
 markerPeaks <- getMarkerFeatures(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), useMatrix = "PeakMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
@@ -254,9 +276,9 @@ enrichEncode <- peakAnnoEnrichment(seMarker = markerPeaks, ArchRProj = arch.proj
 heatmapEncode <- plotEnrichHeatmap(enrichEncode, n = 7, transpose = TRUE)
 ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 
-enrichATAC <- peakAnnoEnrichment(seMarker = markerPeaks, ArchRProj = arch.proj, peakAnnotation = "ATAC", cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
-heatmapATAC <- plotEnrichmentHeatmap(enrichATAC, n = 7, transpose = TRUE)
-ComplexHeatmap::draw(heatmapATAC, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+#enrichATAC <- peakAnnoEnrichment(seMarker = markerPeaks, ArchRProj = arch.proj, peakAnnotation = "ATAC", cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
+#heatmapATAC <- plotEnrichmentHeatmap(enrichATAC, n = 7, transpose = TRUE)
+#ComplexHeatmap::draw(heatmapATAC, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 
 
 
@@ -465,3 +487,4 @@ for(i in 1:length(panc.markers)){
 	
 	
 }
+
