@@ -11,7 +11,7 @@ projectName <- "Obesity_scRNA"
 regression.vars <- c("orig.ident", "SampleSex", "SampleAge")
 cum.var.thresh <- 95
 resolution <- 0.5
-comp.type <- "biowulf" # one of macbookPro, biowulf, or workPC
+comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
 
 ## infrequently modified
 do.sctransform <- TRUE
@@ -251,5 +251,13 @@ openxlsx::saveWorkbook(wb = markers.table, file = paste0(projectName, "_seuratMa
 
 
 
+# Local visualization -----------------------------------------------------
+seurat.object <- readRDS("Obesity_scRNA-AnchorIntegratedObject.RDS")
 
+# did doublet removal happen?
+colnames(seurat.object@meta.data)
+
+DimPlot(seurat.object, cols = color.palette)
+DimPlot(seurat.object, cols = color.palette, group.by = "seurat_clusters", split.by = "Obesity", pt.size = 0.4, ncol = 4)
+FeaturePlot(seurat.object, features = "BMI", pt.size = 1)
 
