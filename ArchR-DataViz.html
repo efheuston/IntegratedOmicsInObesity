@@ -1,0 +1,3050 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-99.9.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Elisabeth F. Heuston">
+
+<title>ArchR-DataViz</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="ArchR-DataViz_files/libs/clipboard/clipboard.min.js"></script>
+<script src="ArchR-DataViz_files/libs/quarto-html/quarto.js"></script>
+<script src="ArchR-DataViz_files/libs/quarto-html/popper.min.js"></script>
+<script src="ArchR-DataViz_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="ArchR-DataViz_files/libs/quarto-html/anchor.min.js"></script>
+<link href="ArchR-DataViz_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="ArchR-DataViz_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="ArchR-DataViz_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="ArchR-DataViz_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="ArchR-DataViz_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">ArchR-DataViz</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Elisabeth F. Heuston </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="background" class="level1">
+<h1>Background</h1>
+<p>Ran <code>ArchR.R</code> on lean, overweight, and obese HPAP scATAC data.<br>
+lean (NW)<br>
+overweight (OW)<br>
+obese (OB)<br>
+This document is primarily for data visualization. Additional analyses should be run in <code>ArchR.R</code><br>
+# Setup</p>
+<section id="load-libraries-and-local-functions" class="level2">
+<h2 class="anchored" data-anchor-id="load-libraries-and-local-functions">Load libraries and local functions</h2>
+<div class="cell" data-hash="ArchR-DataViz_cache/html/unnamed-chunk-1_8078352f7b0819bbb4b62929bca5a3ef">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ArchR) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+                                                   / |
+                                                 /    \
+            .                                  /      |.
+            \\\                              /        |.
+              \\\                          /           `|.
+                \\\                      /              |.
+                  \                    /                |\
+                  \\#####\           /                  ||
+                ==###########&gt;      /                   ||
+                 \\##==......\    /                     ||
+            ______ =       =|__ /__                     ||      \\\
+        ,--' ,----`-,__ ___/'  --,-`-===================##========&gt;
+       \               '        ##_______ _____ ,--,__,=##,__   ///
+        ,    __==    ___,-,__,--'#'  ==='      `-'    | ##,-/
+        -,____,---'       \\####\\________________,--\\_##,/
+           ___      .______        ______  __    __  .______      
+          /   \     |   _  \      /      ||  |  |  | |   _  \     
+         /  ^  \    |  |_)  |    |  ,----'|  |__|  | |  |_)  |    
+        /  /_\  \   |      /     |  |     |   __   | |      /     
+       /  _____  \  |  |\  \\___ |  `----.|  |  |  | |  |\  \\___.
+      /__/     \__\ | _| `._____| \______||__|  |__| | _| `._____|
+    </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR : Version 1.0.2
+For more information see our website : www.ArchRProject.com
+If you encounter a bug please report : https://github.com/GreenleafLab/ArchR/issues</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading Required Packages...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : grid v4.2.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : gridExtra v2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : gtools v3.9.4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : gtable v0.3.1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : ggplot2 v3.4.1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : magrittr v2.0.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : plyr v1.8.8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : stringr v1.5.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : data.table v1.14.6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : matrixStats v0.63.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : S4Vectors v0.36.1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : GenomicRanges v1.50.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : BiocGenerics v0.44.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : Matrix v1.5.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : Rcpp v1.0.10</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : SummarizedExperiment v1.28.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    Loading Package : rhdf5 v2.42.0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">addArchRGenome</span>(<span class="st">"hg38"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Setting default genome to Hg38.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">invisible</span>(<span class="fu">sapply</span>(<span class="fu">list.files</span>(<span class="at">path =</span> <span class="st">"/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions"</span>, <span class="at">pattern =</span> <span class="st">"*.R$"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>                                 source))</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>projectName <span class="ot">&lt;-</span> <span class="st">"Obesity_scHPAP"</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">writeLines</span>(<span class="fu">capture.output</span>(<span class="fu">sessionInfo</span>()), <span class="fu">paste0</span>(projectName, <span class="st">"_sessionInfo.txt"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="load-metadata" class="level2">
+<h2 class="anchored" data-anchor-id="load-metadata">Load metadata</h2>
+<div class="cell" data-hash="ArchR-DataViz_cache/html/unnamed-chunk-2_c08c89da4b667c7b42a25cea0ccff61e">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>metadata <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="at">file =</span> <span class="st">"/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/HPAPMetaData.txt"</span>, <span class="at">header =</span> <span class="cn">TRUE</span>, <span class="at">sep =</span> <span class="st">"</span><span class="sc">\t</span><span class="st">"</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(metadata) <span class="ot">&lt;-</span> metadata<span class="sc">$</span>DonorID</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="load-data" class="level2">
+<h2 class="anchored" data-anchor-id="load-data">Load data</h2>
+<div class="cell" data-hash="ArchR-DataViz_cache/html/unnamed-chunk-3_80d3dadb39a04c00ae3084496b3f3a63">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>arch.proj <span class="ot">&lt;-</span> <span class="fu">loadArchRProject</span>(<span class="at">showLogo =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Successfully loaded ArchRProject!</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="ArchR-DataViz_cache/html/unnamed-chunk-4_bd9173a7b572d511a06a49c833149328">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>cellcoldata <span class="ot">&lt;-</span> <span class="fu">getCellColData</span>(arch.proj, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">"log10(nFrags)"</span>, <span class="st">"TSSEnrichment"</span>))</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co"># plot unique nuclear fragments vs TSS enrichment score</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggPoint</span>(</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> cellcoldata[,<span class="dv">1</span>],</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> cellcoldata[,<span class="dv">2</span>],</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">colorDensity =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">continuousSet =</span> <span class="st">"sambaNight"</span>, </span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlabel =</span> <span class="st">"Log10 Unique Fragments"</span>,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylabel =</span> <span class="st">"TSS Enrichment"</span>,</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fu">log10</span>(<span class="dv">500</span>), <span class="fu">quantile</span>(cellcoldata[,<span class="dv">1</span>], <span class="at">probs =</span> <span class="fl">0.99</span>)),</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">quantile</span>(cellcoldata[,<span class="dv">2</span>], <span class="at">probs =</span> <span class="fl">0.99</span>))) <span class="sc">+</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">4</span>, <span class="at">lty =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">3</span>, <span class="at">lty =</span> <span class="st">"dashed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot TSSEnrichment ridge plot per sample</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotGroups</span>(</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">ArchRProj =</span> arch.proj,</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">groupBy =</span> <span class="st">"Sample"</span>, </span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">colorBy =</span> <span class="st">"cellColData"</span>,</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"TSSEnrichment"</span>, </span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">plotAs =</span> <span class="st">"ridges"</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">8</span>, <span class="at">lty =</span> <span class="st">"dashed"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Length of unique values greater than palette, interpolating..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>1 
+Picking joint bandwidth of 0.53</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-4-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># -- TSS plots show some samples have 2 TSS enrichment at 2 different scores. Will set cutoff @ 8 to maintain a single enriched peak.</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="co"># plot nFrags ridge plot per sample</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plotGroups</span>(</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">ArchRProj =</span> arch.proj,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">groupBy =</span> <span class="st">"Sample"</span>, </span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">colorBy =</span> <span class="st">"cellColData"</span>,</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"log10(nFrags)"</span>, </span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">plotAs =</span> <span class="st">"ridges"</span>) <span class="sc">+</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log10</span>(<span class="dv">1000</span>), <span class="at">lty =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log10</span>(<span class="dv">30000</span>), <span class="at">lty =</span> <span class="st">"dashed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Length of unique values greater than palette, interpolating..
+1 
+Picking joint bandwidth of 0.0701</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-4-3.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="cluster-info" class="level2">
+<h2 class="anchored" data-anchor-id="cluster-info">Cluster info</h2>
+<section id="cells-per-harmony-cluster" class="level3">
+<h3 class="anchored" data-anchor-id="cells-per-harmony-cluster">cells per harmony cluster</h3>
+<div class="cell" data-hash="ArchR-DataViz_cache/html/unnamed-chunk-5_35eae85a38de2eb4d9eba483de1adabd">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t</span>(<span class="fu">t</span>(<span class="fu">table</span>(arch.proj<span class="sc">$</span>Harmony_res0<span class="fl">.5</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     
+      [,1] 
+  C1    882
+  C10  3334
+  C11   354
+  C12 41227
+  C13   268
+  C14   270
+  C15  7923
+  C16  1184
+  C17    93
+  C18 11734
+  C19   442
+  C2    836
+  C20    86
+  C21  2450
+  C22   974
+  C23  1014
+  C24  2732
+  C25   344
+  C3    456
+  C4   9235
+  C5    366
+  C6   2641
+  C7   3867
+  C8  45446
+  C9   5612</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="ArchR-DataViz_cache/html/unnamed-chunk-6_39c8b9e9413ee5e783e616332425b64f">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>cM <span class="ot">&lt;-</span> <span class="fu">confusionMatrix</span>(<span class="fu">paste0</span>(arch.proj<span class="sc">$</span>Harmony_res0<span class="fl">.5</span>), <span class="fu">paste0</span>(arch.proj<span class="sc">$</span>Obesity))</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>cM <span class="ot">&lt;-</span> cM <span class="sc">/</span> Matrix<span class="sc">::</span><span class="fu">rowSums</span>(cM)</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>pheatmap<span class="sc">::</span><span class="fu">pheatmap</span>(</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mat =</span> <span class="fu">as.matrix</span>(cM),</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="fu">paletteContinuous</span>(<span class="st">"whiteBlue"</span>),</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">border_color =</span> <span class="st">"black"</span>, </span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">display_numbers =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">number_color =</span> <span class="st">"firebrick"</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="motif-images" class="level2">
+<h2 class="anchored" data-anchor-id="motif-images">Motif images</h2>
+<div class="cell" data-hash="ArchR-DataViz_cache/html/unnamed-chunk-7_862386ef543b63f4d9ebb86360ba9f73">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>markerPeaks <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"Obesity_scHPAP-MarkerPeaks.RDS"</span>)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>enrichEncode <span class="ot">&lt;-</span> <span class="fu">peakAnnoEnrichment</span>(<span class="at">seMarker =</span> markerPeaks, <span class="at">ArchRProj =</span> arch.proj, <span class="at">peakAnnotation =</span> <span class="st">"EncodeTFBS"</span>, <span class="at">cutOff =</span> <span class="st">"FDR &lt;= 0.1 &amp; Log2FC &gt;= 0.5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-peakAnnoEnrichment-136d381293a0-Date-2023-03-23_Time-13-17-55.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:24 : Computing Enrichments 1 of 25, 0.483 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:25 : Computing Enrichments 2 of 25, 0.493 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:25 : Computing Enrichments 3 of 25, 0.503 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:26 : Computing Enrichments 4 of 25, 0.513 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:26 : Computing Enrichments 5 of 25, 0.523 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:27 : Computing Enrichments 6 of 25, 0.533 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:28 : Computing Enrichments 7 of 25, 0.548 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:29 : Computing Enrichments 8 of 25, 0.559 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:29 : Computing Enrichments 9 of 25, 0.57 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:30 : Computing Enrichments 10 of 25, 0.579 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:30 : Computing Enrichments 11 of 25, 0.589 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:31 : Computing Enrichments 12 of 25, 0.599 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:32 : Computing Enrichments 13 of 25, 0.61 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:32 : Computing Enrichments 14 of 25, 0.62 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:33 : Computing Enrichments 15 of 25, 0.631 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:34 : Computing Enrichments 16 of 25, 0.643 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:34 : Computing Enrichments 17 of 25, 0.654 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:36 : Computing Enrichments 18 of 25, 0.675 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:36 : Computing Enrichments 19 of 25, 0.684 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:37 : Computing Enrichments 20 of 25, 0.695 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:37 : Computing Enrichments 21 of 25, 0.708 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:38 : Computing Enrichments 22 of 25, 0.718 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:39 : Computing Enrichments 23 of 25, 0.73 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:39 : Computing Enrichments 24 of 25, 0.739 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-03-23 13:18:40 : Computing Enrichments 25 of 25, 0.751 mins elapsed.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-peakAnnoEnrichment-136d381293a0-Date-2023-03-23_Time-13-17-55.log</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>heatmapEncode <span class="ot">&lt;-</span> <span class="fu">plotEnrichHeatmap</span>(enrichEncode, <span class="at">n =</span> <span class="dv">7</span>, <span class="at">transpose =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotEnrichHeatmap-136d4b9a0a22-Date-2023-03-23_Time-13-18-41.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>ComplexHeatmap<span class="sc">::</span><span class="fu">draw</span>(heatmapEncode, <span class="at">heatmap_legend_side =</span> <span class="st">"bot"</span>, <span class="at">annotation_legend_side =</span> <span class="st">"bot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="ArchR-DataViz_cache/html/unnamed-chunk-8_9e5e87f1e018f506576449da09b6db44">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plotVar</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-hash="ArchR-DataViz_cache/html/unnamed-chunk-9_d1882f402b8e0f773f03cb76e54223cd">
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>arch.markers <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"Obesity_scHPAP-markergenes.RDS"</span>)</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>panc.markers <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions/panc.markers.RDS"</span>)</span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>heatmap.islets <span class="ot">&lt;-</span> <span class="fu">plotMarkerHeatmap</span>(<span class="at">seMarker =</span> arch.markers, </span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>                                                                        <span class="at">cutOff =</span> <span class="st">"FDR &lt;= 0.01 &amp; Log2FC &gt;=1.25"</span>,</span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>                                                                        <span class="at">labelMarkers =</span> <span class="fu">unlist</span>(panc.markers),</span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>                                                                        <span class="at">transpose =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-136d2075fd2d-Date-2023-03-23_Time-13-19-51.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              alpha1               alpha2               alpha3 
+               "GCG"                "TTR"               "IRX2" 
+              alpha4               alpha5               alpha6 
+            "HIGD1A"                "GLS"             "TM4SF4" 
+              alpha7               alpha8               alpha9 
+               "FAP"               "GPX3"             "SLC7A2" 
+             alpha10            prog.beta                beta1 
+                "GC"               "MAFB"                "INS" 
+               beta2                beta3                beta4 
+              "IAPP"              "G6PC2"            "ADCYAP1" 
+               beta5                beta6                beta7 
+             "ERO1B"               "DLK1"              "NPTX2" 
+               beta8                beta9               beta10 
+               "GSN"           "INS-IGF2"               "HADH" 
+              beta11               gamma1               gamma2 
+              "MAFA"                "PPY"                "ID2" 
+              gamma3               gamma4               gamma5 
+             "GCNT3"              "FXYD2"              "STMN2" 
+              gamma6               gamma7               gamma8 
+            "THSD7A"            "SLITRK6"             "SERTM1" 
+              gamma9              gamma10               delta1 
+            "TM4SF4"               "ETV1"                "SST" 
+              delta2               delta3               delta4 
+              "RBP4"               "LEPR"               "RGS2" 
+              delta5               delta6               delta7 
+            "SEC11C"               "PRG4"               "BCHE" 
+              delta8               delta9              delta10 
+            "ADGRL2"               "HHEX"            "SLC38A1" 
+        prog.acinar1         prog.acinar2              acinar1 
+             "PTF1A"              "NR5A2"              "PTF1A" 
+             acinar2              acinar3 definitive.endoderm1 
+             "AMY1A"               "CPA1"              "FOX2A" 
+definitive.endoderm2 definitive.endoderm3 definitive.endoderm4 
+             "SOX17"              "GATA4"              "CXCR4" 
+definitive.endoderm5       panc.endoderm1       panc.endoderm2 
+               "KIT"               "PDX1"              "PTF1A" 
+      panc.endoderm3       panc.endoderm4       panc.endoderm5 
+            "NXK2-2"               "NGN3"                "IA1" 
+      panc.endoderm6       panc.endoderm7       panc.endoderm8 
+              "ISL1"               "PAX6"               "MNX1" 
+      panc.endoderm9      prog.duct.panc1      prog.duct.panc2 
+           "ONECUT1"               "SOX9"             "NKX6-1" 
+     prog.duct.panc3                duct1                duct2 
+              "CHGA"               "CK19"               "CFTR" 
+               duct3      prog.endocrine1      prog.endocrine2 
+             "HNF1B"               "NGN3"            "NEUROG3" 
+     prog.endocrine3 
+           "NEUROD1" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-136d2075fd2d-Date-2023-03-23_Time-13-19-51.log</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb129"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb129-1"><a href="#cb129-1" aria-hidden="true" tabindex="-1"></a>heatmap.plot <span class="ot">&lt;-</span> ComplexHeatmap<span class="sc">::</span><span class="fu">draw</span>(heatmap.islets, <span class="at">heatmap_legend_side =</span> <span class="st">"bot"</span>, <span class="at">annotation_legend_side =</span> <span class="st">"bot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="ArchR-DataViz_cache/html/unnamed-chunk-10_283452006555c0a3fd6ff1f4d5c37e5c">
+<div class="sourceCode cell-code" id="cb130"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb130-1"><a href="#cb130-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(panc.markers)){</span>
+<span id="cb130-2"><a href="#cb130-2" aria-hidden="true" tabindex="-1"></a>    chart.name <span class="ot">&lt;-</span> <span class="fu">names</span>(panc.markers[i])</span>
+<span id="cb130-3"><a href="#cb130-3" aria-hidden="true" tabindex="-1"></a>    gene.set <span class="ot">&lt;-</span> panc.markers[i]</span>
+<span id="cb130-4"><a href="#cb130-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb130-5"><a href="#cb130-5" aria-hidden="true" tabindex="-1"></a>    heatmap.islets <span class="ot">&lt;-</span> <span class="fu">plotMarkerHeatmap</span>(<span class="at">seMarker =</span> arch.markers, </span>
+<span id="cb130-6"><a href="#cb130-6" aria-hidden="true" tabindex="-1"></a>                                                                            <span class="at">cutOff =</span> <span class="st">"FDR &lt;= 0.01 &amp; Log2FC &gt;=1.25"</span>,</span>
+<span id="cb130-7"><a href="#cb130-7" aria-hidden="true" tabindex="-1"></a>                                                                            <span class="at">labelMarkers =</span> <span class="fu">unlist</span>(gene.set),</span>
+<span id="cb130-8"><a href="#cb130-8" aria-hidden="true" tabindex="-1"></a>                                                                            <span class="at">transpose =</span> <span class="cn">TRUE</span>, )</span>
+<span id="cb130-9"><a href="#cb130-9" aria-hidden="true" tabindex="-1"></a>    heatmap.plot <span class="ot">&lt;-</span> ComplexHeatmap<span class="sc">::</span><span class="fu">draw</span>(heatmap.islets, <span class="at">heatmap_legend_side =</span> <span class="st">"bot"</span>, <span class="at">annotation_legend_side =</span> <span class="st">"bot"</span>)</span>
+<span id="cb130-10"><a href="#cb130-10" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f4a6dfecd-Date-2023-03-23_Time-13-24-49.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  alpha1   alpha2   alpha3   alpha4   alpha5   alpha6   alpha7   alpha8 
+   "GCG"    "TTR"   "IRX2" "HIGD1A"    "GLS" "TM4SF4"    "FAP"   "GPX3" 
+  alpha9  alpha10 
+"SLC7A2"     "GC" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f4a6dfecd-Date-2023-03-23_Time-13-24-49.log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f566fa302-Date-2023-03-23_Time-13-24-54.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>prog.beta 
+   "MAFB" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f566fa302-Date-2023-03-23_Time-13-24-54.log</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f191187b4-Date-2023-03-23_Time-13-25-02.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     beta1      beta2      beta3      beta4      beta5      beta6      beta7 
+     "INS"     "IAPP"    "G6PC2"  "ADCYAP1"    "ERO1B"     "DLK1"    "NPTX2" 
+     beta8      beta9     beta10     beta11 
+     "GSN" "INS-IGF2"     "HADH"     "MAFA" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f191187b4-Date-2023-03-23_Time-13-25-02.log</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f4603ae44-Date-2023-03-23_Time-13-25-06.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   gamma1    gamma2    gamma3    gamma4    gamma5    gamma6    gamma7    gamma8 
+    "PPY"     "ID2"   "GCNT3"   "FXYD2"   "STMN2"  "THSD7A" "SLITRK6"  "SERTM1" 
+   gamma9   gamma10 
+ "TM4SF4"    "ETV1" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f4603ae44-Date-2023-03-23_Time-13-25-06.log</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f35001a31-Date-2023-03-23_Time-13-25-10.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   delta1    delta2    delta3    delta4    delta5    delta6    delta7    delta8 
+    "SST"    "RBP4"    "LEPR"    "RGS2"  "SEC11C"    "PRG4"    "BCHE"  "ADGRL2" 
+   delta9   delta10 
+   "HHEX" "SLC38A1" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f35001a31-Date-2023-03-23_Time-13-25-10.log</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-4.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f66f679fa-Date-2023-03-23_Time-13-25-15.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>prog.acinar1 prog.acinar2 
+     "PTF1A"      "NR5A2" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f66f679fa-Date-2023-03-23_Time-13-25-15.log</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-5.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f6a329b16-Date-2023-03-23_Time-13-25-19.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>acinar1 acinar2 acinar3 
+"PTF1A" "AMY1A"  "CPA1" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f6a329b16-Date-2023-03-23_Time-13-25-19.log</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-6.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f3230c9b-Date-2023-03-23_Time-13-25-23.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>definitive.endoderm1 definitive.endoderm2 definitive.endoderm3 
+             "FOX2A"              "SOX17"              "GATA4" 
+definitive.endoderm4 definitive.endoderm5 
+             "CXCR4"                "KIT" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f3230c9b-Date-2023-03-23_Time-13-25-23.log</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-7.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f1ed59d89-Date-2023-03-23_Time-13-25-27.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>panc.endoderm1 panc.endoderm2 panc.endoderm3 panc.endoderm4 panc.endoderm5 
+        "PDX1"        "PTF1A"       "NXK2-2"         "NGN3"          "IA1" 
+panc.endoderm6 panc.endoderm7 panc.endoderm8 panc.endoderm9 
+        "ISL1"         "PAX6"         "MNX1"      "ONECUT1" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f1ed59d89-Date-2023-03-23_Time-13-25-27.log</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-8.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f315ea700-Date-2023-03-23_Time-13-25-31.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>prog.duct.panc1 prog.duct.panc2 prog.duct.panc3 
+         "SOX9"        "NKX6-1"          "CHGA" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f315ea700-Date-2023-03-23_Time-13-25-31.log</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-9.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8fc6facdb-Date-2023-03-23_Time-13-25-36.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  duct1   duct2   duct3 
+ "CK19"  "CFTR" "HNF1B" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8fc6facdb-Date-2023-03-23_Time-13-25-36.log</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-10.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f33001e35-Date-2023-03-23_Time-13-25-40.log
+If there is an issue, please report to github with logFile!</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Printing Top Marker Genes:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C1:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C10orf99, MIR376A1, GPR149, IL7R, GLIDR, FLJ44635, LOC101927907, MIR155, GPR15, LOC101928748, MIR4735, ANKRD30BP3, HIST1H2AJ, FAM87B, SAMD11</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C2:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HRNR, LOC102723833, ANKRD30A, OVCH2, RASSF10, KCNA4, OR8H3, TRIM49C, TAS2R31, TAS2R46, TAS2R43, TAS2R30, C12orf42, LINC00358, KLHL1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C3:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SEC22B, HIST2H2BE, HIST2H2AB, LOC642361, RBM4B, RNF121, DPAGT1, DDX11, HSPH1, CTXN2, SLC12A1, LINC01195, ZNF566, ZNF793-AS1, ZNF793</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C4:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MMP23A, BRINP3, DRD2, LINC02347, MIR548X2, LINC00868, LINC01248, MIR7515HG, GACAT1, LINC01440, KRTAP10-4, LOC101927657, HEMGN, BRINP1, ERICH3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C5:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    DAB1-AS1, SLC44A5, NTNG1, LRRC52, TBX19, SELP, RGS21, FCMR, LINC00210, GFRA1, OR52N2, ABCD2, MIR6502, KCNC2, SYT1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C6:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    ERRFI1, C1orf195, PLA2G2D, GIPC2, GSTM1, CD2, TCHH, FCGR2C, CFHR5, PM20D1, LOC101928226, IL15RA, MIR548Q, OLAH, TRIM6-TRIM34</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C7:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CSH1, SLC9A3-AS1, DLX6, LRRC26, MIR3621, MIR4314, LINC00691, TMEM210, PIK3CD-AS1, ANKRD30BP3, OR1I1, HOXD10, CGB3, HOXC-AS3, CARMN</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C8:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    SAMD11, PLCH2, C1orf127, EPHA8, OPRD1, MIR4255, TCHHL1, INSRR, RXRG, KCNH1, SUSD4, OR2L3, OR2M5, FAM13C, LRRTM3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C9:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HNRNPCL1, PRAMEF2, PLA2G2E, FNDC7, ADAM30, CRNN, SPRR2E, TEDDM1, C1orf140, GRID1-AS1, MIR6715A, PLEKHS1, C11orf16, SAA2-SAA4, BBOX1-AS1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C10:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    LOC101926964, ARMC4, C10orf142, ALDH3B2, LOC100996671, LINC00410, MYO5C, MIR628, KRT9, OR10H1, CLC, LOC100506274, PSMD6-AS2, ALG1L, LINC00880</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C11:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    CLDN19, DIPK1A, SNORA66, LCE2D, LCE2C, MIR765, NPFFR1, TRIM64C, FOLH1, CDCA5, ZFPL1, MIR4493, TIRAP, LALBA, LINC01498</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C12:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf158, TMCO2, PKLR, LINC01741, AVPR1B, GTPBP4, LINC00200, PLXDC2, MIR4676, PYROXD2, ADRB1, MMP26, OR51A4, LDHAL6A, C11orf53</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C13:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR3671, PTGFR, DPYD, MIR137HG, MIR2682, MIR137, HMGCS2, LINC01037, SPHAR, NEUROG3, LOC105378367, SORCS1, CALY, FRG2B, MS4A8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C14:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TMEM52, CA6, LINC01226, C1orf94, ZNHIT6, CYMP-AS1, SYT6, MAB21L3, ANXA9, VANGL2, C1orf116, LINC00184, KIF26B, ITIH5, GOLGA2P6</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C15:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GJB3, FOXE3, MIR4257, LCE3E, S100A9, CRABP2, LAMC2, C1orf229, VWA2, ABTB2, TCIRG1, SHANK2, SHANK2-AS3, ARNTL2, KRT3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C16:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    HTR1D, OR2M2, RPEL1, MIR130A, CLEC12B, CELA1, ANKRD20A9P, INF2, GDPD3, CES1, HPR, FADS6, CANT1, MIR338, APCDD1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C17:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TRIM67, SORCS3, OR4C11, MIR3166, NFKBIA, GJD3, SLC4A1, MIR3615, PRPSAP1, UTS2R, KCTD1, PLK5, ZNF208, CEACAM8, CST8</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C18:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    GUCA2B, F3, PROK1, LINC00622, CA14, THEM5, FCRLB, FAM71A, RNA5S9, GCSAML-AS1, CXCL12, EDRF1-AS1, PTH, WT1-AS, GLYAT</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C19:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    TCEA3, HSD3B2, PCP4L1, G0S2, FAM238C, FAM24B, MIR5691, LOC100507384, KCTD14, CACNA1C-AS1, ITFG2-AS1, SLC2A14, C12orf77, HOXC13, SLC39A5</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C20:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1QTNF12, CCNL2, MRPL20-AS1, PRKCZ, ESPN, MTOR, ANGPTL7, MIR6729, NECAP2, NBPF1, LINC01654, MINOS1, CAMK2N1, MUL1, EIF4G3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C21:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MIR4695, RSPO1, PODN, SLC1A7, ASB17, LINC01364, LINC01787, C1orf137, WARS2-IT1, LOR, ADCY10, LINC01142, PLA2G4A, LEMD1-AS1, HSD11B1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C22:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    C1orf167, PRAMEF18, PRAMEF5, LRRC38, PLA2G5, BMP8A, ST3GAL3, CCDC17, FOXD2, FOXD2-AS1, SGIP1, LINC01788, CSF1, LINC01397, SLC16A4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C23:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    FAM87B, FNDC10, TNFRSF14, VAMP3, DRAXIN, PADI2, PLA2G2C, MIR6127, CNR2, UBXN11, CD52, ZNF683, RPS6KA1, THEMIS2, PTAFR</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C24:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    RBP7, CORT, LINC01647, AADACL4, ALDH4A1, IFFO2, ALPL, LUZP1, FAM110D, LCK, SLC5A9, FAM151A, ADGRL2, LRRC8C, ABCA4</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C25:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>    MEGF6, PLOD1, KIF17, POU3F1, BRDT, KCNJ10, GJC2, LINC00838, MIR346, CPN1, TRIM5, OR56B4, MRVI1-AS1, MIR7154, F2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Identified 6639 markers!</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>prog.endocrine1 prog.endocrine2 prog.endocrine3 
+         "NGN3"       "NEUROG3"       "NEUROD1" </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Adding Annotations..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Preparing Main Heatmap..</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ArchR logging successful to : ArchRLogs/ArchR-plotMarkerHeatmap-1e8f33001e35-Date-2023-03-23_Time-13-25-40.log</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-11.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="ArchR-DataViz_files/figure-html/unnamed-chunk-10-12.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
