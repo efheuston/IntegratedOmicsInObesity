@@ -19,15 +19,15 @@ do.doubletFinder <- TRUE
 run.jackstraw <- FALSE
 min.cells <- 3
 min.features <- 200
-doublet.var.thresh <- 80
-predicted.doubletRage <- 0.05
+doublet.var.thresh <- 90
+predicted.doubletRate <- 0.05
 
 # Directories -------------------------------------------------------------
 
 if(comp.type == "macbookPro"){
 	workingdir <- "/Users/heustonef/Desktop/Obesity/scRNA/"
 	path_to_data <- "/Users/heustonef/Desktop/PancDB_data/scRNA_noBams"
-	sourceable.functions <- list.files(path = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions", pattern = "*.R", full.names = TRUE)
+	sourceable.functions <- list.files(path = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions", pattern = "*.R$", full.names = TRUE)
 	metadata.location <- "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
 } else if(comp.type == "biowulf"){
 	workingdir <- "/data/CRGGH/heustonef/hpapdata/cellranger_scRNA/"
@@ -98,7 +98,8 @@ for(i in 1:length(sc.data)){
 	print(paste("finished", sc.data[[i]]))
 }
 
-seurat.object <- merge(object.list[[1]], y = object.list[2:length(object.list)], add.cell.ids = names(object.list))
+
+	seurat.object <- merge(object.list[[1]], y = object.list[2:length(object.list)], add.cell.ids = names(object.list))
 
 # QC ----------------------------------------------------------------------
 
@@ -142,14 +143,16 @@ if(do.sctransform == FALSE){ # standard method
 	object.list <- SplitObject(seurat.object, split.by = "orig.ident")
 	object.list <- lapply(X = object.list, 
 												FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2")
+
+	# RUN DOUBLETFINDER AFTER UMAPhttps://github.com/kpatel427/YouTubeTutorials/blob/main/singleCell_doublets.R
 	object.list <- lapply(X = object.list, 
-												FUN = runDoubletFinder, sctransformed = TRUE, tot.var = doublet.var.thresh, predicted.doubletRate = predicted.doubletRage)
+												FUN = runDoubletFinder, sctransformed = TRUE, tot.var = doublet.var.thresh, predicted.doubletRate = predicted.doubletRate)
 	
 	integration.features <- SelectIntegrationFeatures(object.list = object.list, verbose = TRUE)
 	object.list <- PrepSCTIntegration(object.list = object.list, anchor.features = integration.features, verbose = TRUE)
 	integration.anchors <- FindIntegrationAnchors(object.list = object.list, anchor.features = integration.features, normalization.method = "SCT", verbose = TRUE)
 	seurat.object <- IntegrateData(anchorset = integration.anchors, verbose = TRUE, preserve.order = FALSE, normalization.method = "SCT")
-	seurat.object <- subset(seurat.object, subset = "DF.classifications" == "Singlet")
+	seurat.object <- subset(seurat.object, subset = DF.classifications == "Singlet")
 } else {
 	print("Must set do.sctransform to logical")
 }
@@ -216,20 +219,18 @@ FeaturePlot(seurat.object, reduction = "umap", features = "BMI")
 saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
 
 
-# Doublet prediction ------------------------------------------------------
-# RUN DOUBLETFINDER AFTER UMAPhttps://github.com/kpatel427/YouTubeTutorials/blob/main/singleCell_doublets.R
-
 
 # Find cluster biomarkers -------------------------------------------------
 
+seurat.object <- PrepSCTFindMarkers(seurat.object)
 ##find positively expressed markers for all clusters compared to all remaining clusters
 
-markers.seurat.pos <- FindAllMarkers(seurat.object, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+markers.seurat.pos <- FindAllMarkers(seurat.object, assay = "SCT", only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 markers.seurat.pos <- markers.seurat.pos %>% 
 	group_by(cluster) %>%
 	arrange(desc(abs(avg_log2FC)), .by_group = TRUE)
 
-markers.seurat.all <- FindAllMarkers(seurat.object, only.pos = FALSE, min.pct = 0.25, logfc.threshold = 0.25)
+markers.seurat.all <- FindAllMarkers(seurat.object, assay = "SCT", only.pos = FALSE, min.pct = 0.25, logfc.threshold = 0.25)
 markers.seurat.all %>%
 	group_by(cluster) %>%
 	arrange(desc(abs(avg_log2FC)), .by_group = TRUE)

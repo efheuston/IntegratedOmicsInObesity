@@ -38,7 +38,7 @@ runDoubletFinder <- function(seurat.object = NULL, sctransformed = NULL, tot.var
 	seurat.object <- RunUMAP(seurat.object, dims = 1:cluster.dims)
 
 	## pK Identification (no ground-truth) ---------------------------------------------------------------------------------------
-	sweep.res.list <- paramSweep_v3(seurat.object, PCs = tot.var, sct = sctransformed)
+	sweep.res.list <- paramSweep_v3(seurat.object, PCs = 1:cluster.dims, sct = sctransformed)
 	sweep.stats <- summarizeSweep(sweep.res.list, GT = FALSE)
 	bcmvn <- find.pK(sweep.stats)
 	
@@ -59,7 +59,7 @@ runDoubletFinder <- function(seurat.object = NULL, sctransformed = NULL, tot.var
 	nExp_poi.adj <- round(nExp_poi*(1-homotypic.prop))
 
 seurat.object <- doubletFinder_v3(seurat.object,
-																	PCs = 1:tot.var, 
+																	PCs = 1:cluster.dims, 
 																	pK = pK, 
 																	nExp = nExp_poi, 
 																	reuse.pANN = FALSE,
@@ -67,5 +67,5 @@ seurat.object <- doubletFinder_v3(seurat.object,
 names(seurat.object@meta.data)[grep("DF.cl", names(seurat.object@meta.data))] <- "DF.classifications"
 names(seurat.object@meta.data)[grep("pANN", names(seurat.object@meta.data))] <- "pANN"
 
-	
+return(seurat.object)
 }
