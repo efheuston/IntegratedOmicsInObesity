@@ -5,7 +5,7 @@ html:
  embed-resources: true
  self-contained-math: true
 execute:
- cache: true
+ cache: false
 editor: visual
 ---
 
@@ -89,6 +89,11 @@ plotGroups(
 
 ## Cluster info
 
+```{r}
+plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Obesity", embedding = "UMAP_harmony")
+plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "BMI", embedding = "UMAP_harmony", plotAs = "points")
+```
+
 ### cells per harmony cluster
 
 ```{r}
@@ -106,18 +111,20 @@ pheatmap::pheatmap(
 	number_color = "firebrick"
 )
 ```
+
 ## Motif images
+
 ```{r}
 markerPeaks <- readRDS("Obesity_scHPAP-MarkerPeaks.RDS")
 enrichEncode <- peakAnnoEnrichment(seMarker = markerPeaks, ArchRProj = arch.proj, peakAnnotation = "EncodeTFBS", cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
 heatmapEncode <- plotEnrichHeatmap(enrichEncode, n = 7, transpose = TRUE)
 ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 ```
+
 ```{r}
-# plotVar
+plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE)
+plotVarDev
 ```
-
-
 
 ```{r}
 arch.markers <- readRDS("Obesity_scHPAP-markergenes.RDS")
@@ -142,5 +149,44 @@ for(i in 1:length(panc.markers)){
 }
 ```
 
+```{r}
+panc.tfs <- c("PDX1", "PTF1A", "SOX9", "NGN3", "HES1", "HNF6", "NEUROD1", "RFX3", "RFX6", "PAX4", "PAX6", "MAFB")
+panc.motifs <- getFeatures(arch.proj, select = paste(panc.tfs, collapse="|"), useMatrix = "MotifMatrix")
+panc.motifs
+```
 
+```{r fig.height = 5, fig.width=5}
+setwd("~/Desktop/")
+p <- plotGroups(ArchRProj = arch.proj, 
+  groupBy = "Obesity", 
+  colorBy = "MotifMatrix", 
+  name = panc.motifs,
+  imputeWeights = getImputeWeights(arch.proj)
+)
+p2 <- lapply(seq_along(p), function(x){
+  if(x != 1){
+    p[[x]] + guides(color = FALSE, fill = FALSE) + 
+    theme_ArchR(baseSize = 6) +
+    theme(plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")) +
+    theme(
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank(),
+        axis.title.y=element_blank()
+    ) + ylab("")
+  }else{
+    p[[x]] + guides(color = FALSE, fill = FALSE) + 
+    theme_ArchR(baseSize = 6) +
+    theme(plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")) +
+    theme(
+        axis.ticks.y=element_blank(),
+        axis.title.y=element_blank()
+    ) + ylab("")
+  }
+})
+do.call(cowplot::plot_grid, c(list(nrow = 1, rel_widths = c(2, rep(1, length(p2) - 1))),p2))
+```
 
+```{r}
+motifPositions <- getPositions(arch.proj)
+
+```
