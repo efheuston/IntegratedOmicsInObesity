@@ -319,19 +319,21 @@ corGSM_MM <- readRDS(paste0(projectName, "_corGSM_MM.RDS"))
 
 # Integrate scRNA object (Seurat) -----------------------------------------
 
-seurat.object <- readRDS("/Users/heustonef/Desktop/Obesity/")
+# seurat.object <- readRDS("/")
+# Seurat object imported already
 #check import
 colnames(seurat.object@meta.data)
-seurat.object$SCT_snn_res.0.5 <- paste0("SCT", seurat.object$SCT_snn_res.0.5)
+seurat.object@meta.data$integrated_snn_res.0.5[1:5]
+seurat.object$integrated_snn_res.0.5 <- paste0("intgSCT", seurat.object$integrated_snn_res.0.5)
 
 arch.proj <- addGeneIntegrationMatrix(  # step takes ~95min
 	ArchRProj = arch.proj,
 	useMatrix = "GeneScoreMatrix",
-	matrixName = "GeneIntegrationMatrix", 
+	matrixName = "GeneIntegrationMatrix",
 	reducedDims = "Harmony",
 	seRNA = seurat.object,
 	addToArrow = FALSE,
-	groupRNA = "SCT_snn_res.0.5",
+	groupRNA = "integrated_snn_res.0.5",
 	nameCell = "predictedCell_Un",
 	nameGroup = "predictedGroup_Un",
 	nameScore = "predictedScore_Un"
@@ -339,17 +341,17 @@ arch.proj <- addGeneIntegrationMatrix(  # step takes ~95min
 )
 
 saveArchRProject(arch.proj, outputDirectory = working.dir, load = TRUE)
-pal <- paletteDiscrete(values = seurat.object$SCT_snn_res.0.5)
+pal <- paletteDiscrete(values = seurat.object$integrated_snn_res.0.5)
 plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "predictedGroup_Un", pal = pal)
 
 cM <- as.matrix(confusionMatrix(arch.proj$Harmony_res0.5, arch.proj$predictedGroup_Un))
 preClust <- colnames(cM)[apply(cM, 1 , which.max)]
 cbind(preClust, rownames(cM)) #Assignments
 
-# Trajectory --------------------------------------------------------------
+0# Trajectory --------------------------------------------------------------
 arch.proj <- loadArchRProject(working.dir)
 
-pal <- paletteDiscrete(values = seurat.object$SCT_snn_res.0.5)
+pal <- paletteDiscrete(values = seurat.object$integrated_snn_res.0.5)
 
 plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "predictedGroup_Un", pal = pal) +
 	theme_ArchR(legendTextSize = 10)
@@ -391,3 +393,43 @@ for(i in 1:length(panc.markers)){
 	
 }
 
+# testing between groups --------------------------------------------------
+
+OBvsNW <- getMarkerFeatures(
+	ArchRProj = arch.proj, 
+	useMatrix = "PeakMatrix",
+	groupBy = "Obesity",
+	testMethod = "wilcoxon",
+	bias = c("TSSEnrichment", "log10(nFrags)"),
+	useGroups = "OB",
+	bgdGroups = "NW"
+) 
+OWvsNW <- getMarkerFeatures(
+	ArchRProj = arch.proj, 
+	useMatrix = "PeakMatrix",
+	groupBy = "Obesity",
+	testMethod = "wilcoxon",
+	bias = c("TSSEnrichment", "log10(nFrags)"),
+	useGroups = "OW",
+	bgdGroups = "NW"
+) 
+OBvsOW <- getMarkerFeatures(
+	ArchRProj = arch.proj, 
+	useMatrix = "PeakMatrix",
+	groupBy = "Obesity",
+	testMethod = "wilcoxon",
+	bias = c("TSSEnrichment", "log10(nFrags)"),
+	useGroups = "OB",
+	bgdGroups = "OB"
+) 
+
+
+p <- plotBrowserTrack(
+	ArchRProj = arch.proj, 
+	groupBy = "Obesity", 
+	geneSymbol = "LEPR", 
+	upstream = 20000,
+	downstream = 300000
+)
+grid::grid.newpage()
+grid::grid.draw(p$LEPR)

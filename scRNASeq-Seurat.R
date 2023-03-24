@@ -260,5 +260,6 @@ colnames(seurat.object@meta.data)
 
 DimPlot(seurat.object, cols = color.palette)
 DimPlot(seurat.object, cols = color.palette, group.by = "seurat_clusters", split.by = "Obesity", pt.size = 0.4, ncol = 4)
-FeaturePlot(seurat.object, features = "BMI", pt.size = 1)
+FeaturePlot(seurat.object, features = "BMI", pt.size = 0.4, cols = c("blue", "red"))
+FeaturePlot(seurat.object, features = "BMI", pt.size = 0.4, cols = c("blue", "red"), split.by = "integrated_snn_res.0.5", ncol = 4)
 
