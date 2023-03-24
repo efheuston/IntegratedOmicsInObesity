@@ -6,7 +6,7 @@
 projectName <- "Obesity_scHPAP"
 nThreads <- parallelly::availableCores()
 res <- 0.5
-testable.factors <- c("BMI", "obesity") # factors to query during Harmony regression
+testable.factors <- c("BMI", "Obesity") # factors to query during Harmony regression
 comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
 
 # Directories -------------------------------------------------------------
@@ -139,9 +139,9 @@ arch.proj@cellColData[,names(metadata)] <- lapply(names(metadata), function(x){
 	arch.proj@cellColData[[x]] <- metadata[match(vapply(strsplit(as.character(arch.proj$Sample), "_"), `[`, 1, FUN.VALUE = character(1)), metadata$DonorID), x]
 }
 )
-# arch.proj$obesity <- NA
-# arch.proj$obesity[arch.proj$BMI >=30] <- 'obese'
-# arch.proj$obesity[arch.proj$BMI <= 25] <- 'nonobese'
+# arch.proj$Obesity <- NA
+# arch.proj$Obesity[arch.proj$BMI >=30] <- 'obese'
+# arch.proj$Obesity[arch.proj$BMI <= 25] <- 'nonobese'
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 # loadArchRProject(path = working.dir)
 # saveRDS(arch.proj, paste0(projectName, "_noFilters.RDS"))
@@ -198,16 +198,16 @@ arch.proj <- addUMAP(ArchRProj = arch.proj,
 										 minDist = 0.5,
 										 metric = "cosine",
 										 force = TRUE)
-arch.proj <- addClusters(input = arch.proj, reducedDims = "Harmony", method = "Seurat", name = paste0("Harmony_res", as.character(res)), resolution = res, force = TRUE)
+arch.proj <- addClusters(input = arch.proj, reducedDims = "Harmony", method = "Seurat", name = "Obesity", resolution = res, force = TRUE)
 
 plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Obesity", embedding = "UMAP_harmony")
 plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "BMI", embedding = "UMAP_harmony", plotAs = "points")
 p1 <- plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Obesity", embedding = "UMAP_harmony", randomize = TRUE)
-p2 <- plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = paste0("Harmony_res", as.character(res)), embedding = "UMAP_harmony")
+p2 <- plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Obesity", embedding = "UMAP_harmony")
 ggAlignPlots(p1, p2, type = "h")
 
-table(getCellColData(ArchRProj = arch.proj, select = paste0("Harmony_res", as.character(res))))
-cM <- confusionMatrix(paste0(arch.proj$Harmony_res0.5), paste0(arch.proj$obesity)) # Could not automate this line
+table(getCellColData(ArchRProj = arch.proj, select = "Obesity"))
+cM <- confusionMatrix(paste0(arch.proj$Harmony_res0.5), paste0(arch.proj$Obesity)) # Could not automate this line
 cM <- cM / Matrix::rowSums(cM)
 pheatmap::pheatmap(
 	mat = as.matrix(cM),
@@ -215,7 +215,7 @@ pheatmap::pheatmap(
 	border_color = "black"
 )
 
-cM <- confusionMatrix(paste0(arch.proj@cellColData[,paste0("Harmony_res", as.character(res))]), paste0(arch.proj$obesity))
+cM <- confusionMatrix(paste0(arch.proj@cellColData[,"Obesity"]), paste0(arch.proj$Obesity))
 cM <- cM / Matrix::rowSums(cM)
 pheatmap::pheatmap(
 	mat = as.matrix(cM),
@@ -231,7 +231,7 @@ saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TR
 # Identify marker genes ---------------------------------------------------
 
 #Without MAGIC
-markergenes <- getMarkerFeatures(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), useMatrix = "GeneScoreMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
+markergenes <- getMarkerFeatures(arch.proj, groupBy = "Obesity", useMatrix = "GeneScoreMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
 markerList <- getMarkers(markergenes, cutOff = "FDR <= 0.01 & Log2FC >= 1.25")
 saveRDS(markergenes, file = paste0(projectName, "-markergenes.RDS"))
 markerList$C1
@@ -247,15 +247,15 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 pathToMacs2 <- findMacs2()
 BSgenome.Hsapiens.UCSC.hg18 <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 
-arch.proj <- addGroupCoverages(arch.proj, groupBy = paste0("Harmony_res", as.character(res)))
+arch.proj <- addGroupCoverages(arch.proj, groupBy = "Obesity")
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
-arch.proj <- addReproduciblePeakSet(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), pathToMacs2 = pathToMacs2)
+arch.proj <- addReproduciblePeakSet(arch.proj, groupBy = "Obesity", pathToMacs2 = pathToMacs2)
 
 arch.proj <- addPeakMatrix(arch.proj)
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
 
-markerPeaks <- getMarkerFeatures(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), useMatrix = "PeakMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
+markerPeaks <- getMarkerFeatures(arch.proj, groupBy = "Obesity", useMatrix = "PeakMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
 saveRDS(markerPeaks, file = paste0(projectName, "-MarkerPeaks.RDS"))
 
 markerPeaks <- readRDS(paste0(projectName, "-MarkerPeaks.RDS"))
@@ -304,7 +304,7 @@ motifPositions <- getPositions(arch.proj)
 # Deviant Motifs ----------------------------------------------------------
 
 
-seGroupMotif <- getGroupSE(arch.proj, useMatrix = "MotifMatrix", groupBy = paste0("Harmony_res", as.character(res)))
+seGroupMotif <- getGroupSE(arch.proj, useMatrix = "MotifMatrix", groupBy = "Obesity")
 saveRDS(seGroupMotif, file = paste0(projectName, "_seGroupMotif.RDS"))
 corGSM_MM <- correlateMatrices(arch.proj, useMatrix1 = "GeneScoreMatrix", useMatrix2 = "MotifMatrix", reducedDims = "Harmony")
 saveRDS(corGSM_MM, file = paste0(projectName, "_corGSM_MM.RDS"))
