@@ -1,0 +1,111 @@
+---
+title: "Seurat-DataViz"
+author: "Elisabeth F. Heuston"
+date: "2023-03-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = "/Users/heustonef/Desktop/Obesity/scRNA/")
+```
+
+# Background
+
+Ran `scRNASeq-Seurat.R` on lean, overweight, and obese HPAP scRNA data.  
+lean (NW)  
+overweight (OW)  
+obese (OB)  
+This document is primarily for data visualization. Additional analyses should be run in `scRNASeq-Seurat.R`  
+# Setup
+## Load libraries and local functions
+```{r}
+library(dplyr)
+library(Seurat)
+library(patchwork)
+library(cowplot)
+projectName <- "Obesity_scRNA"
+writeLines(capture.output(sessionInfo()), paste0(projectName, "_sessionInfo.txt"))
+
+```
+## load local functions
+```{r}
+invisible(sapply(list.files("~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions/", 
+														pattern = "*.R$", 
+														full.names = TRUE), source))
+```
+## Load metadata
+```{r}
+metadata <- read.table(file = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/HPAPMetaData.txt", header = TRUE, sep = "\t")
+rownames(metadata) <- metadata$DonorID
+panc.markers <- readRDS("~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions/panc.markers.RDS")
+```
+# Data Viz
+## Load data
+```{r}
+seurat.object <- readRDS("Obesity_scRNA-AnchorIntegratedObject.RDS")
+```
+Some essential tables and info
+```{r}
+colnames(seurat.object@meta.data)
+```
+```{r}
+table(seurat.object$DonorID)
+```
+```{r}
+table(seurat.object$Obesity)
+```
+
+```{r}
+table(seurat.object$Obesity, seurat.object$integrated_snn_res.0.5)
+```
+
+```{r}
+counts.table <- table(seurat.object$Obesity, seurat.object$integrated_snn_res.0.5)
+counts.table <- rbind(counts.table, colSums(counts.table))
+counts.table <- as.data.frame.matrix(counts.table) %>%
+	mutate(Tot.per.Class = rowSums(.))
+print(counts.table)
+```
+Make percentages table
+```{r}
+pct.table <- data.frame(row.names = unique(seurat.object@meta.data$DonorID))
+pct.table["tot.cls"] <- sapply(rownames(pct.table), FUN = function(x) nrow(seurat.object@meta.data[seurat.object@meta.data$DonorID == x,]))
+pct.table["BMI"] <- sapply(rownames(pct.table), FUN = function(x) metadata[x, "BMI"])
+for(i in levels(seurat.object@active.ident)){
+	for(j in rownames(pct.table)){
+		pct.table[j, paste0("integ_cl", i)] <- round((nrow(seurat.object@meta.data[seurat.object$DonorID == j & seurat.object$integrated_snn_res.0.5 == i,])/pct.table[j, "tot.cls"])*100, 2)
+	}
+}
+# pct.table["DonorID"] <- rownames(pct.table)
+pct.table
+```
+
+
+
+```{r}
+p1 <- DimPlot(seurat.object, cols = color.palette, group.by = "Obesity")
+p2 <- DimPlot(seurat.object, cols = color.palette, group.by = "integrated_snn_res.0.5")
+p1 + p2
+```
+```{r}
+DimPlot(seurat.object, cols = color.palette, group.by = "integrated_snn_res.0.5", split.by = "Obesity", ncol = 4)
+```
+
+```{r}
+VlnPlot(seurat.object, features = c("INS", "GCG"), group.by = "integrated_snn_res.0.5", split.by = "Obesity", ncol = 1, pt.size = 0)
+```
+```{r}
+FeaturePlot(seurat.object, features = c("INS", "GCG"), blend = TRUE)
+```
+```{r}
+DotPlot(seurat.object, features = c("INS", "GCG", "PPY", "SST", "LEPR", "CPA1"), group.by = "Obesity")
+```
+```{r}
+#Need to figure out how to normalize this, since it's weighted by number of cells...
+# how to plot % of cells
+# pct.long <- reshape2::melt(pct.table[,-1], id.vars = "BMI")
+# pct.long$BMI <- as.factor(pct.long$BMI)
+
+VlnPlot(seurat.object, features = "Obesity", group.by = "integrated_snn_res.0.5", cols = color.palette, pt.size = .1)
+```
+
