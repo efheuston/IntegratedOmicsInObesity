@@ -7,7 +7,7 @@ projectName <- "Obesity_scHPAP"
 nThreads <- parallelly::availableCores()
 res <- 0.5
 testable.factors <- c("BMI", "Obesity") # factors to query during Harmony regression
-comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
+comp.type <- "biowulf" # one of macbookPro, biowulf, or workPC
 
 # Directories -------------------------------------------------------------
 
@@ -23,8 +23,8 @@ if(comp.type == "macbookPro"){
 	path_to_data <- c(list.dirs("/data/CRGGH/heustonef/hpapdata/cellranger_snATAC/cellrangerOuts/", full.names = TRUE, recursive = FALSE))
 	metadata.location <- "/data/CRGGH/heustonef/hpapdata/"
 	funtions.path <- "/data/CRGGH/heustonef/hpapdata/RFunctions/"
-	library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
-	library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
+	# library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
+	# library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
 }
 
 
@@ -247,11 +247,11 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 pathToMacs2 <- findMacs2()
 BSgenome.Hsapiens.UCSC.hg18 <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 
-arch.proj <- addGroupCoverages(arch.proj, groupBy = "Obesity")
+arch.proj <- addGroupCoverages(arch.proj, groupBy = "Obesity", force = TRUE)
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
-arch.proj <- addReproduciblePeakSet(arch.proj, groupBy = "Obesity", pathToMacs2 = pathToMacs2)
+arch.proj <- addReproduciblePeakSet(arch.proj, groupBy = "Obesity", pathToMacs2 = pathToMacs2, force = TRUE)
 
-arch.proj <- addPeakMatrix(arch.proj)
+arch.proj <- addPeakMatrix(arch.proj, force = TRUE)
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
 
@@ -263,11 +263,11 @@ markerPeaks <- readRDS(paste0(projectName, "-MarkerPeaks.RDS"))
 markerList <- getMarkers(markerPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
 heatmapPeaks <- plotMarkerHeatmap(seMarker = markerPeaks, cutOff = "FDR <= 0.1 & Log2FC >= 0.5", transpose = TRUE)
 
-arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "Motif")
+arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "Motif", force = TRUE)
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
 
-arch.proj <- addArchRAnnotations(ArchRProj = arch.proj, collection = "EncodeTFBS")
+arch.proj <- addArchRAnnotations(ArchRProj = arch.proj, collection = "EncodeTFBS", force = TRUE)
 enrichEncode <- peakAnnoEnrichment(seMarker = markerPeaks, ArchRProj = arch.proj, peakAnnotation = "EncodeTFBS", cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
 heatmapEncode <- plotEnrichHeatmap(enrichEncode, n = 7, transpose = TRUE)
 ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
@@ -287,9 +287,9 @@ ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_lege
 # Motif Deviations --------------------------------------------------------
 
 if("Motif" %ni% names(arch.proj@peakAnnotation)){
-	arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "Motif")
+	arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "Motif", force = TRUE)
 }
-arch.proj <- addBgdPeaks(arch.proj)
+arch.proj <- addBgdPeaks(arch.proj, force = TRUE)
 arch.proj <- addDeviationsMatrix(arch.proj, peakAnnotation = "Motif", force = TRUE)
 plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE)
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
@@ -312,15 +312,19 @@ saveRDS(corGSM_MM, file = paste0(projectName, "_corGSM_MM.RDS"))
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
 
-corGSM_MM <- readRDS(paste0(projectName, "_corGSM_MM.RDS"))
+
 
 
 
 
 # Integrate scRNA object (Seurat) -----------------------------------------
 
-# seurat.object <- readRDS("/")
-# Seurat object imported already
+corGSM_MM <- readRDS(paste0(projectName, "_corGSM_MM.RDS"))
+seGroupMotif <- readRDS(paste0(projectName, "_seGroupMotif.RDS"))
+library(Seurat)
+
+seurat.object <- readRDS("../cellranger_scRNA/Obesity_scRNA-AnchorIntegratedObject.RDS")
+
 #check import
 colnames(seurat.object@meta.data)
 seurat.object@meta.data$integrated_snn_res.0.5[1:5]
