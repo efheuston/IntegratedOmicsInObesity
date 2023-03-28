@@ -1,35 +1,25 @@
 # Notes
+
 # Need to exclude HPAP-043. Has 32 cells
 
 # Set up ------------------------------------------------------------------
 
 projectName <- "Obesity_scHPAP"
+#path_to_data <- c(list.dirs("/Users/heustonef/Desktop/PancDB_Data/scATAC_noBams/", full.names = TRUE, recursive = FALSE))
+# working.dir <- "/Users/heustonef/Desktop/Obesity/snATAC"
+# records.dir <- "~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
+path_to_data <- c(list.dirs("/data/CRGGH/heustonef/hpapdata/cellranger_snATAC/cellrangerOuts/", full.names = TRUE, recursive = FALSE))
+working.dir <- "/data/CRGGH/heustonef/hpapdata/cellranger_snATAC"
+records.dir <- working.dir
 nThreads <- parallelly::availableCores()
 res <- 0.5
-testable.factors <- c("BMI", "Obesity") # factors to query during Harmony regression
-comp.type <- "biowulf" # one of macbookPro, biowulf, or workPC
-
-# Directories -------------------------------------------------------------
-
-if(comp.type == "macbookPro"){
-	working.dir <- "/Users/heustonef/Desktop/Obesity/snATAC/"
-	path_to_data <- c(list.dirs("/Users/heustonef/Desktop/PancDB_Data/scATAC_noBams/", full.names = TRUE, recursive = FALSE))
-	records.dir <- "~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
-	metadata.location <- "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
-	functions.path <- "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions/"
-} else if(comp.type == "biowulf"){
-	working.dir <- "/data/CRGGH/heustonef/hpapdata/cellranger_snATAC"
-	records.dir <- working.dir
-	path_to_data <- c(list.dirs("/data/CRGGH/heustonef/hpapdata/cellranger_snATAC/cellrangerOuts/", full.names = TRUE, recursive = FALSE))
-	metadata.location <- "/data/CRGGH/heustonef/hpapdata/"
-	funtions.path <- "/data/CRGGH/heustonef/hpapdata/RFunctions/"
-	# library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
-	# library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
-}
+testable.factors <- c("BMI", "obesity") # factors to query during Harmony regression
 
 
 # Libraries ---------------------------------------------------------------
 
+library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
+library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
 library(ArchR)
 library(harmony)
 addArchRGenome("hg38")
@@ -85,8 +75,16 @@ for(i in arrowfiles){
 		arrowfiles <- arrowfiles[arrowfiles!=i]}
 	arrowfiles <- arrowfiles[arrowfiles != "HPAP-043_FGC2061.arrow"]
 }
+# arrowfiles <- paste0("ArrowFiles/", arrowfiles)
 
 # Identify doublets -------------------------------------------------------
+
+# dbltScores <- c()
+# for(i in arrowfiles){
+# 	print(i)
+# 	dbltScores <- c(dbltScores, addDoubletScores(input = i, k = 10, knnMethod = "UMP", LSIMethod = 1))
+# }
+# 
 dbltScores <- addDoubletScores(input = (arrowfiles), k = 10, knnMethod = "UMAP", LSIMethod = 1) #25 samples = 40min
 
 
@@ -137,11 +135,11 @@ plotGroups(
 
 arch.proj@cellColData[,names(metadata)] <- lapply(names(metadata), function(x){
 	arch.proj@cellColData[[x]] <- metadata[match(vapply(strsplit(as.character(arch.proj$Sample), "_"), `[`, 1, FUN.VALUE = character(1)), metadata$DonorID), x]
-}
+	}
 )
-# arch.proj$Obesity <- NA
-# arch.proj$Obesity[arch.proj$BMI >=30] <- 'obese'
-# arch.proj$Obesity[arch.proj$BMI <= 25] <- 'nonobese'
+# arch.proj$obesity <- NA
+# arch.proj$obesity[arch.proj$BMI >=30] <- 'obese'
+# arch.proj$obesity[arch.proj$BMI <= 25] <- 'nonobese'
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 # loadArchRProject(path = working.dir)
 # saveRDS(arch.proj, paste0(projectName, "_noFilters.RDS"))
@@ -153,7 +151,7 @@ arch.proj <- arch.proj[which(arch.proj$TSSEnrichment > 8 &
 														 	arch.proj$nFrags > 1000 & 
 														 	arch.proj$nFrags<40000 &
 														 	arch.proj$BlacklistRatio < 0.03)]
-# >1000 : https://www.nature.com/articles/s41586-021-03604-1#Sec9
+	# >1000 : https://www.nature.com/articles/s41586-021-03604-1#Sec9
 
 arch.proj <- addIterativeLSI(
 	ArchRProj = arch.proj,
@@ -198,16 +196,16 @@ arch.proj <- addUMAP(ArchRProj = arch.proj,
 										 minDist = 0.5,
 										 metric = "cosine",
 										 force = TRUE)
-arch.proj <- addClusters(input = arch.proj, reducedDims = "Harmony", method = "Seurat", name = "Obesity", resolution = res, force = TRUE)
+arch.proj <- addClusters(input = arch.proj, reducedDims = "Harmony", method = "Seurat", name = paste0("Harmony_res", as.character(res)), resolution = res, force = TRUE)
 
 plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Obesity", embedding = "UMAP_harmony")
 plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "BMI", embedding = "UMAP_harmony", plotAs = "points")
 p1 <- plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Obesity", embedding = "UMAP_harmony", randomize = TRUE)
-p2 <- plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Obesity", embedding = "UMAP_harmony")
+p2 <- plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = paste0("Harmony_res", as.character(res)), embedding = "UMAP_harmony")
 ggAlignPlots(p1, p2, type = "h")
 
-table(getCellColData(ArchRProj = arch.proj, select = "Obesity"))
-cM <- confusionMatrix(paste0(arch.proj$Harmony_res0.5), paste0(arch.proj$Obesity)) # Could not automate this line
+table(getCellColData(ArchRProj = arch.proj, select = paste0("Harmony_res", as.character(res))))
+cM <- confusionMatrix(paste0(arch.proj$Harmony_res0.5), paste0(arch.proj$obesity)) # Could not automate this line
 cM <- cM / Matrix::rowSums(cM)
 pheatmap::pheatmap(
 	mat = as.matrix(cM),
@@ -215,7 +213,7 @@ pheatmap::pheatmap(
 	border_color = "black"
 )
 
-cM <- confusionMatrix(paste0(arch.proj@cellColData[,"Obesity"]), paste0(arch.proj$Obesity))
+cM <- confusionMatrix(paste0(arch.proj@cellColData[,paste0("Harmony_res", as.character(res))]), paste0(arch.proj$obesity))
 cM <- cM / Matrix::rowSums(cM)
 pheatmap::pheatmap(
 	mat = as.matrix(cM),
@@ -231,7 +229,7 @@ saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TR
 # Identify marker genes ---------------------------------------------------
 
 #Without MAGIC
-markergenes <- getMarkerFeatures(arch.proj, groupBy = "Obesity", useMatrix = "GeneScoreMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
+markergenes <- getMarkerFeatures(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), useMatrix = "GeneScoreMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
 markerList <- getMarkers(markergenes, cutOff = "FDR <= 0.01 & Log2FC >= 1.25")
 saveRDS(markergenes, file = paste0(projectName, "-markergenes.RDS"))
 markerList$C1
@@ -247,27 +245,25 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 pathToMacs2 <- findMacs2()
 BSgenome.Hsapiens.UCSC.hg18 <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 
-arch.proj <- addGroupCoverages(arch.proj, groupBy = "Obesity", force = TRUE)
+arch.proj <- addGroupCoverages(arch.proj, groupBy = paste0("Harmony_res", as.character(res)))
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
-arch.proj <- addReproduciblePeakSet(arch.proj, groupBy = "Obesity", pathToMacs2 = pathToMacs2, force = TRUE)
+arch.proj <- addReproduciblePeakSet(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), pathToMacs2 = pathToMacs2)
 
-arch.proj <- addPeakMatrix(arch.proj, force = TRUE)
+arch.proj <- addPeakMatrix(arch.proj)
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
 
-markerPeaks <- getMarkerFeatures(arch.proj, groupBy = "Obesity", useMatrix = "PeakMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
+markerPeaks <- getMarkerFeatures(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), useMatrix = "PeakMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
 saveRDS(markerPeaks, file = paste0(projectName, "-MarkerPeaks.RDS"))
-
-markerPeaks <- readRDS(paste0(projectName, "-MarkerPeaks.RDS"))
-
 markerList <- getMarkers(markerPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
-heatmapPeaks <- plotMarkerHeatmap(seMarker = markerPeaks, cutOff = "FDR <= 0.1 & Log2FC >= 0.5", transpose = TRUE)
+heatmapPeaks <- markerHeatmap(seMarker = markerPeaks, cutOff = "FDR <= 0.1 & Log2FC >= 0.5", transpose = TRUE)
 
-arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "Motif", force = TRUE)
+
+arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "Motif")
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
 
-arch.proj <- addArchRAnnotations(ArchRProj = arch.proj, collection = "EncodeTFBS", force = TRUE)
+arch.proj <- addArchRAnnotations(ArchRProj = arch.proj, collection = "EncodeTFBS")
 enrichEncode <- peakAnnoEnrichment(seMarker = markerPeaks, ArchRProj = arch.proj, peakAnnotation = "EncodeTFBS", cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
 heatmapEncode <- plotEnrichHeatmap(enrichEncode, n = 7, transpose = TRUE)
 ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
@@ -287,9 +283,9 @@ ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_lege
 # Motif Deviations --------------------------------------------------------
 
 if("Motif" %ni% names(arch.proj@peakAnnotation)){
-	arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "Motif", force = TRUE)
+	arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "Motif")
 }
-arch.proj <- addBgdPeaks(arch.proj, force = TRUE)
+arch.proj <- addBgdPeaks(arch.proj)
 arch.proj <- addDeviationsMatrix(arch.proj, peakAnnotation = "Motif", force = TRUE)
 plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE)
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
@@ -304,7 +300,7 @@ motifPositions <- getPositions(arch.proj)
 # Deviant Motifs ----------------------------------------------------------
 
 
-seGroupMotif <- getGroupSE(arch.proj, useMatrix = "MotifMatrix", groupBy = "Obesity")
+seGroupMotif <- getGroupSE(arch.proj, useMatrix = "MotifMatrix", groupBy = paste0("Harmony_res", as.character(res)))
 saveRDS(seGroupMotif, file = paste0(projectName, "_seGroupMotif.RDS"))
 corGSM_MM <- correlateMatrices(arch.proj, useMatrix1 = "GeneScoreMatrix", useMatrix2 = "MotifMatrix", reducedDims = "Harmony")
 saveRDS(corGSM_MM, file = paste0(projectName, "_corGSM_MM.RDS"))
@@ -312,32 +308,26 @@ saveRDS(corGSM_MM, file = paste0(projectName, "_corGSM_MM.RDS"))
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
 
-
+corGSM_MM <- readRDS(paste0(projectName, "_corGSM_MM.RDS"))
 
 
 
 
 # Integrate scRNA object (Seurat) -----------------------------------------
 
-corGSM_MM <- readRDS(paste0(projectName, "_corGSM_MM.RDS"))
-seGroupMotif <- readRDS(paste0(projectName, "_seGroupMotif.RDS"))
-library(Seurat)
-
-seurat.object <- readRDS("../cellranger_scRNA/Obesity_scRNA-AnchorIntegratedObject.RDS")
-
+seurat.object <- readRDS("/Users/heustonef/Desktop/Obesity/")
 #check import
 colnames(seurat.object@meta.data)
-seurat.object@meta.data$integrated_snn_res.0.5[1:5]
-seurat.object$integrated_snn_res.0.5 <- paste0("intgSCT", seurat.object$integrated_snn_res.0.5)
+seurat.object$SCT_snn_res.0.5 <- paste0("SCT", seurat.object$SCT_snn_res.0.5)
 
 arch.proj <- addGeneIntegrationMatrix(  # step takes ~95min
 	ArchRProj = arch.proj,
 	useMatrix = "GeneScoreMatrix",
-	matrixName = "GeneIntegrationMatrix",
+	matrixName = "GeneIntegrationMatrix", 
 	reducedDims = "Harmony",
 	seRNA = seurat.object,
 	addToArrow = FALSE,
-	groupRNA = "integrated_snn_res.0.5",
+	groupRNA = "SCT_snn_res.0.5",
 	nameCell = "predictedCell_Un",
 	nameGroup = "predictedGroup_Un",
 	nameScore = "predictedScore_Un"
@@ -345,27 +335,120 @@ arch.proj <- addGeneIntegrationMatrix(  # step takes ~95min
 )
 
 saveArchRProject(arch.proj, outputDirectory = working.dir, load = TRUE)
-pal <- paletteDiscrete(values = seurat.object$integrated_snn_res.0.5)
+pal <- paletteDiscrete(values = seurat.object$SCT_snn_res.0.5)
 plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "predictedGroup_Un", pal = pal)
 
 cM <- as.matrix(confusionMatrix(arch.proj$Harmony_res0.5, arch.proj$predictedGroup_Un))
 preClust <- colnames(cM)[apply(cM, 1 , which.max)]
 cbind(preClust, rownames(cM)) #Assignments
 
-0# Trajectory --------------------------------------------------------------
+# Trajectory --------------------------------------------------------------
 arch.proj <- loadArchRProject(working.dir)
 
-pal <- paletteDiscrete(values = seurat.object$integrated_snn_res.0.5)
+pal <- paletteDiscrete(values = seurat.object$SCT_snn_res.0.5)
 
 plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "predictedGroup_Un", pal = pal) +
-	theme_ArchR(legendTextSize = 10)
+theme_ArchR(legendTextSize = 10)
 
-panc.markers <- readRDS(paste0(functions.path, "panc.markers.RDS"))
 
+
+
+
+panc.markers <- list()
+panc.markers$alpha <- c(
+	"GCG", 
+	"TTR", 
+	"IRX2", 
+	"HIGD1A", 
+	"GLS", 
+	"TM4SF4",
+	"FAP", 
+	"GPX3", 
+	"SLC7A2", 
+	"GC")
+panc.markers$prog.beta <- c(
+	'MAFB'
+)
+panc.markers$beta <- c(
+	"INS",
+	"IAPP", 
+	"G6PC2", 
+	"ADCYAP1", 
+	"ERO1B", 
+	"DLK1", 
+	"NPTX2", 
+	"GSN", 
+	"INS-IGF2", 
+	"HADH",
+	"MAFA")
+panc.markers$gamma <- c(
+	"PPY", 
+	"ID2", 
+	"GCNT3", 
+	"FXYD2", 
+	"STMN2", 
+	"THSD7A", 
+	"SLITRK6", 
+	"SERTM1", 
+	"TM4SF4", 
+	"ETV1")
+panc.markers$delta <- c(
+	"SST", 
+	"RBP4", 
+	"LEPR", 
+	"RGS2", 
+	"SEC11C", 
+	"PRG4", 
+	"BCHE", 
+	"ADGRL2", 
+	"HHEX", 
+	"SLC38A1")
+panc.markers$prog.acinar <- c(
+	'PTF1A',
+	'NR5A2'
+)
+panc.markers$acinar <- c(
+	'PTF1A',
+	'AMY1A',
+	'CPA1'
+)
+panc.markers$definitive.endoderm <- c(
+	'FOX2A',
+	'SOX17',
+	'GATA4',
+	'CXCR4',
+	'KIT'
+)
+panc.markers$panc.endoderm <- c(
+	'PDX1',
+	'PTF1A',
+	'NXK2-2',
+	'NGN3',
+	'IA1',
+	'ISL1',
+	'PAX6',
+	"MNX1",
+	"ONECUT1"
+)
+panc.markers$prog.duct.panc <- c(
+	'SOX9',
+	'NKX6-1',
+	'CHGA'
+)
+panc.markers$duct <- c(
+	'CK19',
+	'CFTR',
+	'HNF1B'
+)
+panc.markers$prog.endocrine <- c(
+	'NGN3',
+	'NEUROG3',
+	'NEUROD1'
+)
 
 # Heatmaps ----------------------------------------------------------------
 
-arch.markers <- readRDS(paste0(working.dir, projectName, "-markergenes.RDS"))
+arch.markers <- readRDS("ArchRFiles-markergenes.RDS")
 heatmap.islets <- plotMarkerHeatmap(seMarker = arch.markers, 
 																		cutOff = "FDR <= 0.01 & Log2FC >=1.25",
 																		labelMarkers = unlist(panc.markers),
@@ -383,57 +466,16 @@ for(i in 1:length(panc.markers)){
 	gene.set <- panc.markers[i]
 	
 	heatmap.islets <- plotMarkerHeatmap(seMarker = arch.markers, 
-																			cutOff = "FDR <= 0.01 & Log2FC >=1.25",
-																			labelMarkers = unlist(gene.set),
-																			transpose = TRUE)
-	
-	
+																		cutOff = "FDR <= 0.01 & Log2FC >=1.25",
+																		labelMarkers = unlist(gene.set),
+																		transpose = TRUE)
+
+
 	heatmap.plot <- ComplexHeatmap::draw(heatmap.islets, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 	
 	png(filename = paste0(projectName, "-UMAP_harmony-res", as.character(res), "-", as.character(chart.name), "Markersheatmap.png"), height= 800, width = 1600, bg = "transparent", res = 100)
 	plot(heatmap.plot)
 	dev.off()
-	
+
 	
 }
-
-# testing between groups --------------------------------------------------
-
-OBvsNW <- getMarkerFeatures(
-	ArchRProj = arch.proj, 
-	useMatrix = "PeakMatrix",
-	groupBy = "Obesity",
-	testMethod = "wilcoxon",
-	bias = c("TSSEnrichment", "log10(nFrags)"),
-	useGroups = "OB",
-	bgdGroups = "NW"
-) 
-OWvsNW <- getMarkerFeatures(
-	ArchRProj = arch.proj, 
-	useMatrix = "PeakMatrix",
-	groupBy = "Obesity",
-	testMethod = "wilcoxon",
-	bias = c("TSSEnrichment", "log10(nFrags)"),
-	useGroups = "OW",
-	bgdGroups = "NW"
-) 
-OBvsOW <- getMarkerFeatures(
-	ArchRProj = arch.proj, 
-	useMatrix = "PeakMatrix",
-	groupBy = "Obesity",
-	testMethod = "wilcoxon",
-	bias = c("TSSEnrichment", "log10(nFrags)"),
-	useGroups = "OB",
-	bgdGroups = "OB"
-) 
-
-
-p <- plotBrowserTrack(
-	ArchRProj = arch.proj, 
-	groupBy = "Obesity", 
-	geneSymbol = "LEPR", 
-	upstream = 20000,
-	downstream = 300000
-)
-grid::grid.newpage()
-grid::grid.draw(p$LEPR)
