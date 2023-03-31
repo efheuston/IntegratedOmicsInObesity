@@ -12,9 +12,9 @@ regression.vars <- c("sequencerID", "SampleSex", "SampleAge")
 cum.var.thresh <- 95
 resolution <- 0.5
 comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
+do.sctransform <- "each" # one of FALSE, each, pooled
 
 ## infrequently modified
-do.sctransform <- TRUE
 do.doubletFinder <- TRUE
 run.jackstraw <- FALSE
 min.cells <- 3
@@ -34,8 +34,8 @@ if(comp.type == "macbookPro"){
 	path_to_data <- "/data/CRGGH/heustonef/hpapdata/cellranger_scRNA/scRNA_transfer"
 	sourceable.functions <- list.files(path = "/data/CRGGH/heustonef/hpapdata/RFunctions/", pattern = "*.R", full.names = TRUE)
 	metadata.location <- "/data/CRGGH/heustonef/hpapdata/"
-	library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
-	library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
+	# library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
+	# library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
 }
 
 # Load libraries ----------------------------------------------------------
@@ -141,11 +141,11 @@ if(do.sctransform == FALSE){ # standard method
 	
 	seurat.object <- ScaleData(seurat.object, features = all.genes, vars.to.regress = regression.vars)
 	
-} else if(do.sctransform == TRUE){
+} else if(do.sctransform == "each"){
 	print("Performing SCTransform")
 	object.list <- SplitObject(seurat.object, split.by = "orig.ident")
 	object.list <- lapply(X = object.list, 
-												FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2", vars.to.regress = regression.vars)
+												FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2")
 
 	# RUN DOUBLETFINDER AFTER UMAPhttps://github.com/kpatel427/YouTubeTutorials/blob/main/singleCell_doublets.R
 	object.list <- lapply(X = object.list, 
@@ -155,12 +155,17 @@ if(do.sctransform == FALSE){ # standard method
 	object.list <- PrepSCTIntegration(object.list = object.list, anchor.features = integration.features, verbose = TRUE)
 	integration.anchors <- FindIntegrationAnchors(object.list = object.list, anchor.features = integration.features, normalization.method = "SCT", verbose = TRUE)
 	seurat.object <- IntegrateData(anchorset = integration.anchors, verbose = TRUE, preserve.order = FALSE, normalization.method = "SCT")
+	
+} else if(do.sctransform == "pooled") {
+	seurat.object <- SCTransform(seurat.object, method = "glsGamPoi", vars.to.regress = regression.vars, verbose = TRUE, return.only.var.genes = FALSE, vst.flavor = "v2")
+	seurat.object <- runDoubletFinder(seurat.object = seurat.object, sctransformed = TRUE, tot.var = doublet.var.thresh, predicted.doubletRate = predicted.doubletRate)
 	seurat.object <- subset(seurat.object, subset = DF.classifications == "Singlet")
-} else {
-	print("Must set do.sctransform to logical")
+	
+}else {
+	print("Must set do.sctransform to one of: FALSE, each, pooled")
 }
 
-saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
+saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, ".RDS"))
 # Linear dimensional reduction --------------------------------------------
 
 
@@ -171,7 +176,7 @@ VizDimLoadings(seurat.object, dims = 1:2, reduction = "pca")
 DimPlot(seurat.object, reduction = "pca")
 DimHeatmap(seurat.object, dims = 1:2, cells = 500, balanced = TRUE)
 
-saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
+saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, ".RDS"))
 
 # Determine dimensionality ------------------------------------------------
 
@@ -195,7 +200,7 @@ if(cum.var.thresh > 0){
 	cluster.dims <- length(which(cumsum(tot.var) <= cum.var.thresh))
 }
 
-saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
+saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, ".RDS"))
 
 # Louvain cluster ---------------------------------------------------------
 
@@ -203,7 +208,7 @@ saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorInteg
 seurat.object <- FindNeighbors(seurat.object, dims = 1:cluster.dims)
 seurat.object <- FindClusters(seurat.object, resolution = resolution)
 
-saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
+saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, ".RDS"))
 
 
 ##umap
@@ -218,7 +223,7 @@ FeaturePlot(seurat.object, reduction = "umap", features = "BMI")
 
 
 ##saveRDS
-saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
+saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, ".RDS"))
 
 
 
@@ -255,11 +260,13 @@ openxlsx::saveWorkbook(wb = markers.table, file = paste0(projectName, "_seuratMa
 
 # Cell Cycle Scoring ------------------------------------------------------
 
-DefaultAssay(seurat.object) <- "SCT"
+if(!do.sctransform == FALSE){
+	DefaultAssay(seurat.object) <- "SCT"
+}
 seurat.object <- CellCycleScoring(seurat.object, s.features = Seurat::cc.genes$s.genes, g2m.features = Seurat::cc.genes$g2m.genes)
 
 # Local visualization -----------------------------------------------------
-seurat.object <- readRDS("Obesity_scRNA-AnchorIntegratedObject.RDS")
+# seurat.object <- readRDS("Obesity_scRNA.RDS")
 
 # did doublet removal happen?
 colnames(seurat.object@meta.data)
