@@ -1,25 +1,35 @@
 # Notes
-
 # Need to exclude HPAP-043. Has 32 cells
 
 # Set up ------------------------------------------------------------------
 
 projectName <- "Obesity_scHPAP"
-#path_to_data <- c(list.dirs("/Users/heustonef/Desktop/PancDB_Data/scATAC_noBams/", full.names = TRUE, recursive = FALSE))
-# working.dir <- "/Users/heustonef/Desktop/Obesity/snATAC"
-# records.dir <- "~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
-path_to_data <- c(list.dirs("/data/CRGGH/heustonef/hpapdata/cellranger_snATAC/cellrangerOuts/", full.names = TRUE, recursive = FALSE))
-working.dir <- "/data/CRGGH/heustonef/hpapdata/cellranger_snATAC"
-records.dir <- working.dir
 nThreads <- parallelly::availableCores()
 res <- 0.5
 testable.factors <- c("BMI", "obesity") # factors to query during Harmony regression
+comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
+
+# Directories -------------------------------------------------------------
+
+if(comp.type == "macbookPro"){
+	working.dir <- "/Users/heustonef/Desktop/Obesity/snATAC/"
+	path_to_data <- c(list.dirs("/Users/heustonef/Desktop/PancDB_Data/scATAC_noBams/", full.names = TRUE, recursive = FALSE))
+	records.dir <- "~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
+	metadata.location <- "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
+	functions.path <- "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions/"
+} else if(comp.type == "biowulf"){
+	working.dir <- "/data/CRGGH/heustonef/hpapdata/cellranger_snATAC"
+	records.dir <- working.dir
+	path_to_data <- c(list.dirs("/data/CRGGH/heustonef/hpapdata/cellranger_snATAC/cellrangerOuts/", full.names = TRUE, recursive = FALSE))
+	metadata.location <- "/data/CRGGH/heustonef/hpapdata/"
+	funtions.path <- "/data/CRGGH/heustonef/hpapdata/RFunctions/"
+	library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
+	library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
+}
 
 
 # Libraries ---------------------------------------------------------------
 
-library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
-library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
 library(ArchR)
 library(harmony)
 addArchRGenome("hg38")
@@ -75,16 +85,8 @@ for(i in arrowfiles){
 		arrowfiles <- arrowfiles[arrowfiles!=i]}
 	arrowfiles <- arrowfiles[arrowfiles != "HPAP-043_FGC2061.arrow"]
 }
-# arrowfiles <- paste0("ArrowFiles/", arrowfiles)
 
 # Identify doublets -------------------------------------------------------
-
-# dbltScores <- c()
-# for(i in arrowfiles){
-# 	print(i)
-# 	dbltScores <- c(dbltScores, addDoubletScores(input = i, k = 10, knnMethod = "UMP", LSIMethod = 1))
-# }
-# 
 dbltScores <- addDoubletScores(input = (arrowfiles), k = 10, knnMethod = "UMAP", LSIMethod = 1) #25 samples = 40min
 
 
@@ -135,7 +137,7 @@ plotGroups(
 
 arch.proj@cellColData[,names(metadata)] <- lapply(names(metadata), function(x){
 	arch.proj@cellColData[[x]] <- metadata[match(vapply(strsplit(as.character(arch.proj$Sample), "_"), `[`, 1, FUN.VALUE = character(1)), metadata$DonorID), x]
-	}
+}
 )
 # arch.proj$obesity <- NA
 # arch.proj$obesity[arch.proj$BMI >=30] <- 'obese'
@@ -151,7 +153,7 @@ arch.proj <- arch.proj[which(arch.proj$TSSEnrichment > 8 &
 														 	arch.proj$nFrags > 1000 & 
 														 	arch.proj$nFrags<40000 &
 														 	arch.proj$BlacklistRatio < 0.03)]
-	# >1000 : https://www.nature.com/articles/s41586-021-03604-1#Sec9
+# >1000 : https://www.nature.com/articles/s41586-021-03604-1#Sec9
 
 arch.proj <- addIterativeLSI(
 	ArchRProj = arch.proj,
@@ -255,9 +257,11 @@ saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TR
 
 markerPeaks <- getMarkerFeatures(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), useMatrix = "PeakMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
 saveRDS(markerPeaks, file = paste0(projectName, "-MarkerPeaks.RDS"))
-markerList <- getMarkers(markerPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
-heatmapPeaks <- markerHeatmap(seMarker = markerPeaks, cutOff = "FDR <= 0.1 & Log2FC >= 0.5", transpose = TRUE)
 
+markerPeaks <- readRDS(paste0(projectName, "-MarkerPeaks.RDS"))
+
+markerList <- getMarkers(markerPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
+heatmapPeaks <- plotMarkerHeatmap(seMarker = markerPeaks, cutOff = "FDR <= 0.1 & Log2FC >= 0.5", transpose = TRUE)
 
 arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "Motif")
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
@@ -348,107 +352,14 @@ arch.proj <- loadArchRProject(working.dir)
 pal <- paletteDiscrete(values = seurat.object$SCT_snn_res.0.5)
 
 plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "predictedGroup_Un", pal = pal) +
-theme_ArchR(legendTextSize = 10)
+	theme_ArchR(legendTextSize = 10)
 
+panc.markers <- readRDS(paste0(functions.path, "panc.markers.RDS"))
 
-
-
-
-panc.markers <- list()
-panc.markers$alpha <- c(
-	"GCG", 
-	"TTR", 
-	"IRX2", 
-	"HIGD1A", 
-	"GLS", 
-	"TM4SF4",
-	"FAP", 
-	"GPX3", 
-	"SLC7A2", 
-	"GC")
-panc.markers$prog.beta <- c(
-	'MAFB'
-)
-panc.markers$beta <- c(
-	"INS",
-	"IAPP", 
-	"G6PC2", 
-	"ADCYAP1", 
-	"ERO1B", 
-	"DLK1", 
-	"NPTX2", 
-	"GSN", 
-	"INS-IGF2", 
-	"HADH",
-	"MAFA")
-panc.markers$gamma <- c(
-	"PPY", 
-	"ID2", 
-	"GCNT3", 
-	"FXYD2", 
-	"STMN2", 
-	"THSD7A", 
-	"SLITRK6", 
-	"SERTM1", 
-	"TM4SF4", 
-	"ETV1")
-panc.markers$delta <- c(
-	"SST", 
-	"RBP4", 
-	"LEPR", 
-	"RGS2", 
-	"SEC11C", 
-	"PRG4", 
-	"BCHE", 
-	"ADGRL2", 
-	"HHEX", 
-	"SLC38A1")
-panc.markers$prog.acinar <- c(
-	'PTF1A',
-	'NR5A2'
-)
-panc.markers$acinar <- c(
-	'PTF1A',
-	'AMY1A',
-	'CPA1'
-)
-panc.markers$definitive.endoderm <- c(
-	'FOX2A',
-	'SOX17',
-	'GATA4',
-	'CXCR4',
-	'KIT'
-)
-panc.markers$panc.endoderm <- c(
-	'PDX1',
-	'PTF1A',
-	'NXK2-2',
-	'NGN3',
-	'IA1',
-	'ISL1',
-	'PAX6',
-	"MNX1",
-	"ONECUT1"
-)
-panc.markers$prog.duct.panc <- c(
-	'SOX9',
-	'NKX6-1',
-	'CHGA'
-)
-panc.markers$duct <- c(
-	'CK19',
-	'CFTR',
-	'HNF1B'
-)
-panc.markers$prog.endocrine <- c(
-	'NGN3',
-	'NEUROG3',
-	'NEUROD1'
-)
 
 # Heatmaps ----------------------------------------------------------------
 
-arch.markers <- readRDS("ArchRFiles-markergenes.RDS")
+arch.markers <- readRDS(paste0(working.dir, projectName, "-markergenes.RDS"))
 heatmap.islets <- plotMarkerHeatmap(seMarker = arch.markers, 
 																		cutOff = "FDR <= 0.01 & Log2FC >=1.25",
 																		labelMarkers = unlist(panc.markers),
@@ -466,16 +377,17 @@ for(i in 1:length(panc.markers)){
 	gene.set <- panc.markers[i]
 	
 	heatmap.islets <- plotMarkerHeatmap(seMarker = arch.markers, 
-																		cutOff = "FDR <= 0.01 & Log2FC >=1.25",
-																		labelMarkers = unlist(gene.set),
-																		transpose = TRUE)
-
-
+																			cutOff = "FDR <= 0.01 & Log2FC >=1.25",
+																			labelMarkers = unlist(gene.set),
+																			transpose = TRUE)
+	
+	
 	heatmap.plot <- ComplexHeatmap::draw(heatmap.islets, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 	
 	png(filename = paste0(projectName, "-UMAP_harmony-res", as.character(res), "-", as.character(chart.name), "Markersheatmap.png"), height= 800, width = 1600, bg = "transparent", res = 100)
 	plot(heatmap.plot)
 	dev.off()
-
+	
 	
 }
+

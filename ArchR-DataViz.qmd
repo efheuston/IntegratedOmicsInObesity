@@ -93,12 +93,24 @@ plotGroups(
 plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Obesity", embedding = "UMAP_harmony")
 plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "BMI", embedding = "UMAP_harmony", plotAs = "points")
 ```
+### cells per category
+```{r}
+table(arch.proj$Obesity)
+```
 
 ### cells per harmony cluster
-
 ```{r}
-t(t(table(arch.proj$Harmony_res0.5)))
+table(arch.proj$Harmony_res0.5)
 ```
+```{r}
+table(arch.proj$Harmony_res0.5, arch.proj$Obesity)
+```
+
+Donor contribution per cluster
+```{r}
+table(arch.proj$DonorID, arch.proj$Harmony_res0.5)
+```
+
 
 ```{r}
 cM <- confusionMatrix(paste0(arch.proj$Harmony_res0.5), paste0(arch.proj$Obesity))
@@ -117,13 +129,13 @@ pheatmap::pheatmap(
 ```{r}
 markerPeaks <- readRDS("Obesity_scHPAP-MarkerPeaks.RDS")
 enrichEncode <- peakAnnoEnrichment(seMarker = markerPeaks, ArchRProj = arch.proj, peakAnnotation = "EncodeTFBS", cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
-heatmapEncode <- plotEnrichHeatmap(enrichEncode, n = 7, transpose = TRUE)
+heatmapEncode <- plotEnrichHeatmap(enrichEncode, n = 5, transpose = TRUE)
 ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 ```
 
 ```{r}
-plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE)
-plotVarDev
+# plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE)
+# plotVarDev
 ```
 
 ```{r}
@@ -137,16 +149,16 @@ heatmap.plot <- ComplexHeatmap::draw(heatmap.islets, heatmap_legend_side = "bot"
 ```
 
 ```{r}
-for(i in 1:length(panc.markers)){
-	chart.name <- names(panc.markers[i])
-	gene.set <- panc.markers[i]
-	
-	heatmap.islets <- plotMarkerHeatmap(seMarker = arch.markers, 
-																			cutOff = "FDR <= 0.01 & Log2FC >=1.25",
-																			labelMarkers = unlist(gene.set),
-																			transpose = TRUE, )
-	heatmap.plot <- ComplexHeatmap::draw(heatmap.islets, heatmap_legend_side = "bot", annotation_legend_side = "bot")
-}
+# for(i in 1:length(panc.markers)){
+# 	chart.name <- names(panc.markers[i])
+# 	gene.set <- panc.markers[i]
+# 	
+# 	heatmap.islets <- plotMarkerHeatmap(seMarker = arch.markers, 
+# 																			cutOff = "FDR <= 0.01 & Log2FC >=1.25",
+# 																			labelMarkers = unlist(gene.set),
+# 																			transpose = TRUE, )
+# 	heatmap.plot <- ComplexHeatmap::draw(heatmap.islets, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+# }
 ```
 
 ```{r}

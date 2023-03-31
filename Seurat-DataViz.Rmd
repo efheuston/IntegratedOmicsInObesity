@@ -23,8 +23,8 @@ library(dplyr)
 library(Seurat)
 library(patchwork)
 library(cowplot)
-projectName <- "Obesity_scRNA"
-writeLines(capture.output(sessionInfo()), paste0(projectName, "_sessionInfo.txt"))
+rnaProject <- "Obesity_scRNA"
+writeLines(capture.output(sessionInfo()), paste0(rnaProject, "_sessionInfo.txt"))
 
 ```
 ## load local functions
@@ -37,12 +37,15 @@ invisible(sapply(list.files("~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository
 ```{r}
 metadata <- read.table(file = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/HPAPMetaData.txt", header = TRUE, sep = "\t")
 rownames(metadata) <- metadata$DonorID
-panc.markers <- readRDS("~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions/panc.markers.RDS")
 ```
 # Data Viz
 ## Load data
+Note that when looking at differential gene expression, you should switch the asssay back to "SCT"
 ```{r}
 seurat.object <- readRDS("Obesity_scRNA-AnchorIntegratedObject.RDS")
+DefaultAssay(seurat.object) <- "SCT"
+seurat.object$Obesity <- factor(seurat.object$Obesity, levels = c("NW", "OW", "OB"))
+
 ```
 Some essential tables and info
 ```{r}
@@ -57,6 +60,9 @@ table(seurat.object$Obesity)
 
 ```{r}
 table(seurat.object$Obesity, seurat.object$integrated_snn_res.0.5)
+```
+```{r}
+table(seurat.object$integrated_snn_res.0.5, seurat.object$DonorID)
 ```
 
 ```{r}
@@ -80,32 +86,84 @@ for(i in levels(seurat.object@active.ident)){
 pct.table
 ```
 
-
-
 ```{r}
 p1 <- DimPlot(seurat.object, cols = color.palette, group.by = "Obesity")
 p2 <- DimPlot(seurat.object, cols = color.palette, group.by = "integrated_snn_res.0.5")
 p1 + p2
+
+png(filename = paste0(rnaProject, "_UMAP-obesity.png"), height = 1200, width = 1200)
+DimPlot(seurat.object, cols = color.palette, group.by = "Obesity")
+dev.off()
+png(filename = paste0(rnaProject, "_UMAP-intgsnnres05.png"), height = 1200, width = 1200)
+DimPlot(seurat.object, cols = color.palette, group.by = "integrated_snn_res.0.5")
+dev.off()
+
 ```
 ```{r}
 DimPlot(seurat.object, cols = color.palette, group.by = "integrated_snn_res.0.5", split.by = "Obesity", ncol = 4)
 ```
+```{r}
+cM <- confusionMatrix(paste0(seurat.object$integrated_snn_res.0.5), paste0(seurat.object$Obesity))
+cM <- cM / Matrix::rowSums(cM)
+pheatmap::pheatmap(
+	mat = as.matrix(cM),
+	color = paletteContinuous("whiteBlue"),
+	border_color = "black", 
+	display_numbers = TRUE, 
+	number_color = "firebrick"
+)
+png(filename = paste0(rnaProject, "-ClusterHeatmap.png"), height = 1000, width = 1200)
+pheatmap::pheatmap(
+	mat = as.matrix(cM),
+	color = paletteContinuous("whiteBlue"),
+	border_color = "black", 
+	display_numbers = TRUE, 
+	number_color = "firebrick"
+)
+dev.off()
+
+
+```
+
+
+# Load and mess with Panc markers
+```{r}
+panc.markers <- readRDS("~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions/panc.markers.RDS")
+```
+
 
 ```{r}
-VlnPlot(seurat.object, features = c("INS", "GCG"), group.by = "integrated_snn_res.0.5", split.by = "Obesity", ncol = 1, pt.size = 0)
+VlnPlot(seurat.object, features = c("INS", "GCG", "PPY", "LEPR"), group.by = "integrated_snn_res.0.5", split.by = "Obesity", ncol = 1, pt.size = 0)
 ```
 ```{r}
 FeaturePlot(seurat.object, features = c("INS", "GCG"), blend = TRUE)
 ```
 ```{r}
-DotPlot(seurat.object, features = c("INS", "GCG", "PPY", "SST", "LEPR", "CPA1"), group.by = "Obesity")
+DotPlot(seurat.object, features = c("INS", "GCG", "PPY", "SST", "LEPR", "CPA1"), split.by = "Obesity", cols = c("gold", "blue3", "red3"))
 ```
+
+```{r}
+DotPlot(seurat.object, features = panc.markers$myeloid, split.by = "Obesity", cols = c("gold", "blue3", "red3"))
+png(filename = "test.png", height = 1200, width = 800)
+DotPlot(seurat.object, features = panc.markers$myeloid, split.by = "Obesity", cols = c("gold", "blue3", "red3"))
+dev.off()
+```
+
+
+
 ```{r}
 #Need to figure out how to normalize this, since it's weighted by number of cells...
 # how to plot % of cells
 # pct.long <- reshape2::melt(pct.table[,-1], id.vars = "BMI")
 # pct.long$BMI <- as.factor(pct.long$BMI)
 
-VlnPlot(seurat.object, features = "Obesity", group.by = "integrated_snn_res.0.5", cols = color.palette, pt.size = .1)
+VlnPlot(seurat.object, features = "BMI", group.by = "integrated_snn_res.0.5", cols = color.palette, pt.size = .1)
+```
+
+```{r}
+# png(filename = paste0(rnaProject, "-SeuratDotplot-", i, ".png"), height = 1200, width = 800)
+DotPlot(seurat.object, features = panc.markers[i], split.by = "Obesity", cols = c("gold", "blue3", "red3"), dot.min = )
+# dev.off()
+
 ```
 
