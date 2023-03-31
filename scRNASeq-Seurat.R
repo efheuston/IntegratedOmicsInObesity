@@ -7,8 +7,8 @@
 
 # Global parameters -------------------------------------------------------
 
-projectName <- "Obesity_scRNA"
-regression.vars <- c("orig.ident", "SampleSex", "SampleAge")
+projectName <- "Obesity_scRNA-SCTRegression"
+regression.vars <- c("sequencerID", "SampleSex", "SampleAge")
 cum.var.thresh <- 95
 resolution <- 0.5
 comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
@@ -101,6 +101,9 @@ for(i in 1:length(sc.data)){
 
 	seurat.object <- merge(object.list[[1]], y = object.list[2:length(object.list)], add.cell.ids = names(object.list))
 
+	
+	seurat.object$sequencerID <- seurat.object$orig.ident
+	seurat.object$sequencerID <- with(seurat.object, stringi::stri_replace_all_fixed(seurat.object$sequencerID, seurat.object$DonorID, ""))
 # QC ----------------------------------------------------------------------
 
 ##plot qc stats
@@ -142,7 +145,7 @@ if(do.sctransform == FALSE){ # standard method
 	print("Performing SCTransform")
 	object.list <- SplitObject(seurat.object, split.by = "orig.ident")
 	object.list <- lapply(X = object.list, 
-												FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2")
+												FUN = SCTransform, assay = "RNA", return.only.var.genes = FALSE, vst.flavor = "v2", vars.to.regress = regression.vars)
 
 	# RUN DOUBLETFINDER AFTER UMAPhttps://github.com/kpatel427/YouTubeTutorials/blob/main/singleCell_doublets.R
 	object.list <- lapply(X = object.list, 
@@ -159,7 +162,6 @@ if(do.sctransform == FALSE){ # standard method
 
 saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorIntegratedObject.RDS"))
 # Linear dimensional reduction --------------------------------------------
-
 
 
 seurat.object <- RunPCA(seurat.object, features = VariableFeatures(object = seurat.object))
@@ -222,7 +224,7 @@ saveRDS(seurat.object, file = paste0(workingdir, "/", projectName, "-AnchorInteg
 
 # Find cluster biomarkers -------------------------------------------------
 
-seurat.object <- PrepSCTFindMarkers(seurat.object)
+seurat.object <- PrepSCTFindMarkers(seurat.object, assay = "SCT")
 ##find positively expressed markers for all clusters compared to all remaining clusters
 
 markers.seurat.pos <- FindAllMarkers(seurat.object, assay = "SCT", only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
@@ -251,6 +253,10 @@ openxlsx::writeData(markers.table, sheet = "AllMarkers", x = markers.seurat.all,
 openxlsx::saveWorkbook(wb = markers.table, file = paste0(projectName, "_seuratMarkers.xlsx"), overwrite = TRUE, returnValue = TRUE)
 
 
+# Cell Cycle Scoring ------------------------------------------------------
+
+DefaultAssay(seurat.object) <- "SCT"
+seurat.object <- CellCycleScoring(seurat.object, s.features = Seurat::cc.genes$s.genes, g2m.features = Seurat::cc.genes$g2m.genes)
 
 # Local visualization -----------------------------------------------------
 seurat.object <- readRDS("Obesity_scRNA-AnchorIntegratedObject.RDS")
