@@ -11,3 +11,6 @@ PancDB_data
 
 #Ignore archived files
 Archives/*
+
+#Ignore web summaries
+web_summaries/

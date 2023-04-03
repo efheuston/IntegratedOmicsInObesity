@@ -7,11 +7,11 @@
 
 # Global parameters -------------------------------------------------------
 
-projectName <- "Obesity_scRNA-SCTRegression"
+projectName <- "Obesity_scRNA-SCTRegression-NW-OB"
 regression.vars <- c("sequencerID", "SampleSex", "SampleAge")
 cum.var.thresh <- 95
 resolution <- 0.5
-comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
+comp.type <- "biowulf" # one of macbookPro, biowulf, or workPC
 do.sctransform <- "each" # one of FALSE, each, pooled
 
 ## infrequently modified
@@ -72,9 +72,10 @@ for(i in sc.data){
 metadata <- read.table(file = paste0(metadata.location, "HPAPMetaData.txt"), header = TRUE, sep = "\t")
 rownames(metadata) <- metadata$DonorID
 
+# Exclude OW donors
 for(i in sc.data){
 	x <- strsplit(i, "_")[[1]][1]
-	if(!(metadata[x, "SimpDisease"] == "NoDM" & metadata[x, "scRNA"] > 0)){
+	if(!(metadata[x, "SimpDisease"] == "NoDM" & (metadata[x, "BMI"] < 25 | metadata[x, "BMI"] > 30) & metadata[x, "scRNA"] > 0)){
 		sc.data <- sc.data[sc.data!=i]}
 }
 
@@ -275,4 +276,5 @@ DimPlot(seurat.object, cols = color.palette)
 DimPlot(seurat.object, cols = color.palette, group.by = "seurat_clusters", split.by = "Obesity", pt.size = 0.4, ncol = 4)
 FeaturePlot(seurat.object, features = "BMI", pt.size = 0.4, cols = c("blue", "red"))
 FeaturePlot(seurat.object, features = "BMI", pt.size = 0.4, cols = c("blue", "red"), split.by = "integrated_snn_res.0.5", ncol = 4)
+
 

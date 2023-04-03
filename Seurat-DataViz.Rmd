@@ -23,7 +23,7 @@ library(dplyr)
 library(Seurat)
 library(patchwork)
 library(cowplot)
-rnaProject <- "Obesity_scRNA"
+rnaProject <- "Obesity_scRNA-SCTRegression"
 writeLines(capture.output(sessionInfo()), paste0(rnaProject, "_sessionInfo.txt"))
 
 ```
@@ -42,7 +42,7 @@ rownames(metadata) <- metadata$DonorID
 ## Load data
 Note that when looking at differential gene expression, you should switch the asssay back to "SCT"
 ```{r}
-seurat.object <- readRDS("Obesity_scRNA-AnchorIntegratedObject.RDS")
+seurat.object <- readRDS("Obesity_scRNA-SCTRegression.RDS")
 DefaultAssay(seurat.object) <- "SCT"
 seurat.object$Obesity <- factor(seurat.object$Obesity, levels = c("NW", "OW", "OB"))
 
@@ -100,14 +100,15 @@ dev.off()
 
 ```
 ```{r}
-DimPlot(seurat.object, cols = color.palette, group.by = "integrated_snn_res.0.5", split.by = "Obesity", ncol = 4)
+DimPlot(seurat.object, cols = color.palette, group.by = "integrated_snn_res.0.5", split.by = "Obesity", ncol = 3)
 ```
 ```{r}
+library(ArchR)
 cM <- confusionMatrix(paste0(seurat.object$integrated_snn_res.0.5), paste0(seurat.object$Obesity))
 cM <- cM / Matrix::rowSums(cM)
 pheatmap::pheatmap(
 	mat = as.matrix(cM),
-	color = paletteContinuous("whiteBlue"),
+	color = paletteContinuous("whiteBlue"), 
 	border_color = "black", 
 	display_numbers = TRUE, 
 	number_color = "firebrick"
@@ -127,19 +128,15 @@ dev.off()
 
 
 # Load and mess with Panc markers
-```{r}
-panc.markers <- readRDS("~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions/panc.markers.RDS")
-```
-
 
 ```{r}
-VlnPlot(seurat.object, features = c("INS", "GCG", "PPY", "LEPR"), group.by = "integrated_snn_res.0.5", split.by = "Obesity", ncol = 1, pt.size = 0)
+VlnPlot(seurat.object, features = c("INS", "GCG", "PPY"), group.by = "integrated_snn_res.0.5", split.by = "Obesity", ncol = 1, pt.size = 0)
 ```
 ```{r}
 FeaturePlot(seurat.object, features = c("INS", "GCG"), blend = TRUE)
 ```
 ```{r}
-DotPlot(seurat.object, features = c("INS", "GCG", "PPY", "SST", "LEPR", "CPA1"), split.by = "Obesity", cols = c("gold", "blue3", "red3"))
+DotPlot(seurat.object, features = c("INS", "GCG", "PPY", "SST", "CPA1"), split.by = "Obesity", cols = c("gold", "blue3", "red3"))
 ```
 
 ```{r}
@@ -162,7 +159,7 @@ VlnPlot(seurat.object, features = "BMI", group.by = "integrated_snn_res.0.5", co
 
 ```{r}
 # png(filename = paste0(rnaProject, "-SeuratDotplot-", i, ".png"), height = 1200, width = 800)
-DotPlot(seurat.object, features = panc.markers[i], split.by = "Obesity", cols = c("gold", "blue3", "red3"), dot.min = )
+DotPlot(seurat.object, features = panc.markers[i], split.by = "Obesity", cols = c("gold", "blue3", "red3"), dot.min = 2)
 # dev.off()
 
 ```

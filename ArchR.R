@@ -3,7 +3,7 @@
 
 # Set up ------------------------------------------------------------------
 
-projectName <- "Obesity_scHPAP"
+projectName <- "Obesity_scHPAP_RNA-SCTRregression-NW-OB"
 nThreads <- parallelly::availableCores()
 res <- 0.5
 testable.factors <- c("BMI", "obesity") # factors to query during Harmony regression
@@ -319,10 +319,10 @@ corGSM_MM <- readRDS(paste0(projectName, "_corGSM_MM.RDS"))
 
 # Integrate scRNA object (Seurat) -----------------------------------------
 
-seurat.object <- readRDS("/Users/heustonef/Desktop/Obesity/")
+seurat.object <- readRDS("/Users/heustonef/Desktop/Obesity/scRNA/Obesity_scRNA-SCTRegression-NW-OB.RDS")
 #check import
 colnames(seurat.object@meta.data)
-seurat.object$SCT_snn_res.0.5 <- paste0("SCT", seurat.object$SCT_snn_res.0.5)
+seurat.object$integrated_snn_res.0.5 <- paste0("SCT", seurat.object$integrated_snn_res.0.5)
 
 arch.proj <- addGeneIntegrationMatrix(  # step takes ~95min
 	ArchRProj = arch.proj,
@@ -331,7 +331,7 @@ arch.proj <- addGeneIntegrationMatrix(  # step takes ~95min
 	reducedDims = "Harmony",
 	seRNA = seurat.object,
 	addToArrow = FALSE,
-	groupRNA = "SCT_snn_res.0.5",
+	groupRNA = "integrated_snn_res.0.5",
 	nameCell = "predictedCell_Un",
 	nameGroup = "predictedGroup_Un",
 	nameScore = "predictedScore_Un"
@@ -339,27 +339,30 @@ arch.proj <- addGeneIntegrationMatrix(  # step takes ~95min
 )
 
 saveArchRProject(arch.proj, outputDirectory = working.dir, load = TRUE)
-pal <- paletteDiscrete(values = seurat.object$SCT_snn_res.0.5)
+pal <- paletteDiscrete(values = seurat.object$integrated_snn_res.0.5)
 plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "predictedGroup_Un", pal = pal)
 
 cM <- as.matrix(confusionMatrix(arch.proj$Harmony_res0.5, arch.proj$predictedGroup_Un))
 preClust <- colnames(cM)[apply(cM, 1 , which.max)]
 cbind(preClust, rownames(cM)) #Assignments
+saveArchRProject(arch.proj, outputDirectory = working.dir, load = TRUE)
+
 
 # Trajectory --------------------------------------------------------------
 arch.proj <- loadArchRProject(working.dir)
 
-pal <- paletteDiscrete(values = seurat.object$SCT_snn_res.0.5)
+pal <- paletteDiscrete(values = seurat.object$integrated_snn_res.0.5)
 
-plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "predictedGroup_Un", pal = pal) +
+plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "predictedGroup_Un") +
+	theme_ArchR(legendTextSize = 10)
+plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "Harmony_res0.5",) +
 	theme_ArchR(legendTextSize = 10)
 
-panc.markers <- readRDS(paste0(functions.path, "panc.markers.RDS"))
 
 
 # Heatmaps ----------------------------------------------------------------
 
-arch.markers <- readRDS(paste0(working.dir, projectName, "-markergenes.RDS"))
+arch.markers <- readRDS(paste0(working.dir, "Obesity_scHPAP-markergenes.RDS"))
 heatmap.islets <- plotMarkerHeatmap(seMarker = arch.markers, 
 																		cutOff = "FDR <= 0.01 & Log2FC >=1.25",
 																		labelMarkers = unlist(panc.markers),
@@ -390,4 +393,4 @@ for(i in 1:length(panc.markers)){
 	
 	
 }
-
+panc.markers
