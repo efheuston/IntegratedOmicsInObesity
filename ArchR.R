@@ -3,7 +3,7 @@
 
 # Set up ------------------------------------------------------------------
 
-projectName <- "Obesity_scHPAP_RNA-SCTRregression-NW-OB"
+atacProject <- "Obesity_snATAC-ArchR_NW-OB"
 nThreads <- parallelly::availableCores()
 res <- 0.5
 testable.factors <- c("BMI", "obesity") # factors to query during Harmony regression
@@ -23,8 +23,8 @@ if(comp.type == "macbookPro"){
 	path_to_data <- c(list.dirs("/data/CRGGH/heustonef/hpapdata/cellranger_snATAC/cellrangerOuts/", full.names = TRUE, recursive = FALSE))
 	metadata.location <- "/data/CRGGH/heustonef/hpapdata/"
 	funtions.path <- "/data/CRGGH/heustonef/hpapdata/RFunctions/"
-	library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
-	library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
+	# library(vctrs, lib.loc = "/data/heustonef/Rlib_local/")
+	# library(purrr, lib.loc = "/data/heustonef/Rlib_local/")
 }
 
 
@@ -40,7 +40,7 @@ addArchRThreads(threads = nThreads)
 
 
 setwd(working.dir)
-sink(paste0(records.dir, projectName, "_sessionInfo.txt"))
+sink(paste0(records.dir, atacProject, "_sessionInfo.txt"))
 sessionInfo()
 sink()
 
@@ -61,7 +61,7 @@ arrowfiles <- createArrowFiles(
 	addTileMat = TRUE,
 	addGeneScoreMat = TRUE, force = TRUE
 )
-saveRDS(arrowfiles, paste0(projectName, "-ArrowFiles.RDS"))
+saveRDS(arrowfiles, paste0(atacProject, "-ArrowFiles.RDS"))
 
 
 
@@ -74,16 +74,14 @@ metadata <- read.table(file = "/data/CRGGH/heustonef/hpapdata/cellranger_snATAC/
 rownames(metadata) <- metadata$DonorID
 
 # Define subset
-# as of 2023.03.10 we are taking all "NoDM" donors regardless of BMI
-# > only a little annoyed because it took me far too long to figure out the logic for the original cutoffs
-
-# At this point exclude HPAP-043
+# As of 4.3.23 were are going to limit to obese and lean only
+# At this point exclude HPAP-092
 
 for(i in arrowfiles){
 	x <- strsplit(i, "_")[[1]][1]
 	if(!(metadata[x, "SimpDisease"] == "NoDM" & metadata[x, "scATAC"] >0)){
 		arrowfiles <- arrowfiles[arrowfiles!=i]}
-	arrowfiles <- arrowfiles[arrowfiles != "HPAP-043_FGC2061.arrow"]
+	arrowfiles <- arrowfiles[!(arrowfiles %in% c("HPAP-092_FGC2061.arrow", "HPAP-092_FGC2381.arrow"))]
 }
 
 # Identify doublets -------------------------------------------------------
@@ -144,7 +142,7 @@ arch.proj@cellColData[,names(metadata)] <- lapply(names(metadata), function(x){
 # arch.proj$obesity[arch.proj$BMI <= 25] <- 'nonobese'
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 # loadArchRProject(path = working.dir)
-# saveRDS(arch.proj, paste0(projectName, "_noFilters.RDS"))
+# saveRDS(arch.proj, paste0(atacProject, "_noFilters.RDS"))
 
 # Filter  ---------------------------------------------------------
 
@@ -188,7 +186,7 @@ arch.proj <- addHarmony(ArchRProj = arch.proj,
 												force = TRUE) # addHarmony "grouby" defines variables to correct for
 
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
-saveRDS(arch.proj, paste0(projectName, "_Harmony.RDS"))
+saveRDS(arch.proj, paste0(atacProject, "_Harmony.RDS"))
 
 
 arch.proj <- addUMAP(ArchRProj = arch.proj,
@@ -233,7 +231,7 @@ saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TR
 #Without MAGIC
 markergenes <- getMarkerFeatures(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), useMatrix = "GeneScoreMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
 markerList <- getMarkers(markergenes, cutOff = "FDR <= 0.01 & Log2FC >= 1.25")
-saveRDS(markergenes, file = paste0(projectName, "-markergenes.RDS"))
+saveRDS(markergenes, file = paste0(atacProject, "-markergenes.RDS"))
 markerList$C1
 
 #With MAGIC
@@ -256,9 +254,9 @@ saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TR
 
 
 markerPeaks <- getMarkerFeatures(arch.proj, groupBy = paste0("Harmony_res", as.character(res)), useMatrix = "PeakMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
-saveRDS(markerPeaks, file = paste0(projectName, "-MarkerPeaks.RDS"))
+saveRDS(markerPeaks, file = paste0(atacProject, "-MarkerPeaks.RDS"))
 
-markerPeaks <- readRDS(paste0(projectName, "-MarkerPeaks.RDS"))
+markerPeaks <- readRDS(paste0(atacProject, "-MarkerPeaks.RDS"))
 
 markerList <- getMarkers(markerPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
 heatmapPeaks <- plotMarkerHeatmap(seMarker = markerPeaks, cutOff = "FDR <= 0.1 & Log2FC >= 0.5", transpose = TRUE)
@@ -305,14 +303,14 @@ motifPositions <- getPositions(arch.proj)
 
 
 seGroupMotif <- getGroupSE(arch.proj, useMatrix = "MotifMatrix", groupBy = paste0("Harmony_res", as.character(res)))
-saveRDS(seGroupMotif, file = paste0(projectName, "_seGroupMotif.RDS"))
+saveRDS(seGroupMotif, file = paste0(atacProject, "_seGroupMotif.RDS"))
 corGSM_MM <- correlateMatrices(arch.proj, useMatrix1 = "GeneScoreMatrix", useMatrix2 = "MotifMatrix", reducedDims = "Harmony")
-saveRDS(corGSM_MM, file = paste0(projectName, "_corGSM_MM.RDS"))
+saveRDS(corGSM_MM, file = paste0(atacProject, "_corGSM_MM.RDS"))
 
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
 
-corGSM_MM <- readRDS(paste0(projectName, "_corGSM_MM.RDS"))
+corGSM_MM <- readRDS(paste0(atacProject, "_corGSM_MM.RDS"))
 
 
 
@@ -371,7 +369,7 @@ heatmap.islets <- plotMarkerHeatmap(seMarker = arch.markers,
 
 heatmap.plot <- ComplexHeatmap::draw(heatmap.islets, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 
-png(filename = paste0(projectName, "-UMAP_harmony-res", as.character(res), "-AllMarkersheatmap.png"), height= 800, width = 1600, bg = "transparent", res = 100)
+png(filename = paste0(atacProject, "-UMAP_harmony-res", as.character(res), "-AllMarkersheatmap.png"), height= 800, width = 1600, bg = "transparent", res = 100)
 plot(heatmap.plot)
 dev.off()
 
@@ -387,7 +385,7 @@ for(i in 1:length(panc.markers)){
 	
 	heatmap.plot <- ComplexHeatmap::draw(heatmap.islets, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 	
-	png(filename = paste0(projectName, "-UMAP_harmony-res", as.character(res), "-", as.character(chart.name), "Markersheatmap.png"), height= 800, width = 1600, bg = "transparent", res = 100)
+	png(filename = paste0(atacProject, "-UMAP_harmony-res", as.character(res), "-", as.character(chart.name), "Markersheatmap.png"), height= 800, width = 1600, bg = "transparent", res = 100)
 	plot(heatmap.plot)
 	dev.off()
 	

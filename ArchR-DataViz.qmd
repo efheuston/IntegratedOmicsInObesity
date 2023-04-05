@@ -29,8 +29,8 @@ library(ArchR)
 addArchRGenome("hg38")
 invisible(sapply(list.files(path = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions", pattern = "*.R$", full.names = TRUE),
 								 source))
-projectName <- "Obesity_scHPAP"
-writeLines(capture.output(sessionInfo()), paste0(projectName, "_sessionInfo.txt"))
+atacProject <- "Obesity_snATAC-ArchR_NW-OB"
+writeLines(capture.output(sessionInfo()), paste0(atacProject, "_sessionInfo.txt"))
 ```
 
 ## Load metadata
@@ -42,7 +42,7 @@ rownames(metadata) <- metadata$DonorID
 
 ## Load data
 
-```{r}
+```{r warning=FALSE}
 arch.proj <- loadArchRProject(showLogo = FALSE)
 ```
 
@@ -90,8 +90,15 @@ plotGroups(
 ## Cluster info
 
 ```{r}
+png(filename = paste0(atacProject, "-UMAPharmony-Obesity.png"), height = 1200, width = 1200)
 plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Obesity", embedding = "UMAP_harmony")
+dev.off()
+png(filename = paste0(atacProject, "-UMAPharmony-BMI.png"), height = 1200, width = 1200)
 plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "BMI", embedding = "UMAP_harmony", plotAs = "points")
+dev.off()
+png(filename = paste0(atacProject, "-UMAPharmony-cluster.png"), height = 1200, width = 1200)
+plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Harmony_res0.5", embedding = "UMAP_harmony", plotAs = "points")
+dev.off()
 ```
 ### cells per category
 ```{r}
@@ -110,6 +117,9 @@ Donor contribution per cluster
 ```{r}
 table(arch.proj$DonorID, arch.proj$Harmony_res0.5)
 ```
+```{r}
+length(unique(arch.proj$DonorID))
+```
 
 
 ```{r}
@@ -127,21 +137,30 @@ pheatmap::pheatmap(
 ## Motif images
 
 ```{r}
-markerPeaks <- readRDS("Obesity_scHPAP-MarkerPeaks.RDS")
+markerPeaks <- readRDS("~/Desktop/Obesity/snATAC/Obesity_snATAC-MarkerPeaks.RDS")
 enrichEncode <- peakAnnoEnrichment(seMarker = markerPeaks, ArchRProj = arch.proj, peakAnnotation = "EncodeTFBS", cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
-heatmapEncode <- plotEnrichHeatmap(enrichEncode, n = 5, transpose = TRUE)
+heatmapEncode <- plotEnrichHeatmap(enrichEncode, n = 5, transpose = FALSE)
 ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+
+png(filename = paste0(atacProject, "-Top5MotifsPerCluster.png"), height = 1200, width = 800)
+ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+dev.off()
 ```
 
 ```{r}
-# plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE)
-# plotVarDev
+plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, n = 15)
+plotVarDev
+
+png(filename = paste0(atacProject, "-Top15Motifs.png"), height = 800, width = 1200)
+plotVarDev
+dev.off()
+
 ```
 
 ```{r}
-arch.markers <- readRDS("Obesity_scHPAP-markergenes.RDS")
-panc.markers <- readRDS("/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions/panc.markers.RDS")
-heatmap.islets <- plotMarkerHeatmap(seMarker = arch.markers, 
+arch.markers <- readRDS("~/Desktop/Obesity/snATAC/Obesity_snATAC-markergenes.RDS")
+heatmap.islets <- plotMarkerHeatmap(seMarker 
+																		= arch.markers, 
 																		cutOff = "FDR <= 0.01 & Log2FC >=1.25",
 																		labelMarkers = unlist(panc.markers),
 																		transpose = TRUE)
@@ -167,7 +186,7 @@ panc.motifs <- getFeatures(arch.proj, select = paste(panc.tfs, collapse="|"), us
 panc.motifs
 ```
 
-```{r fig.height = 5, fig.width=5}
+```{r }
 setwd("~/Desktop/")
 p <- plotGroups(ArchRProj = arch.proj, 
   groupBy = "Obesity", 
@@ -199,6 +218,93 @@ do.call(cowplot::plot_grid, c(list(nrow = 1, rel_widths = c(2, rep(1, length(p2)
 ```
 
 ```{r}
-motifPositions <- getPositions(arch.proj)
+# motifPositions <- getPositions(arch.proj)
 
 ```
+
+## plotting gene score matrix 
+Favourite genes
+
+```{r}
+panc.genes <- c("GCG", "IAPP", "INS", "TTR", "MAFB", "SST", "PPY", "CPA1", "PRSS1", "MALAT1", "NEAT1", "PTF1A", "PDX1", "SOX9", "APOE", "PECAM1")
+```
+
+```{r}
+setwd("~/Desktop/")
+p <- plotGroups(ArchRProj = arch.proj, 
+  groupBy = "Obesity", 
+  colorBy = "GeneScoreMatrix", 
+  name = panc.genes,
+  imputeWeights = getImputeWeights(arch.proj)
+)
+p2 <- lapply(seq_along(p), function(x){
+  if(x != 1){
+    p[[x]] + guides(color = FALSE, fill = FALSE) + 
+    theme_ArchR(baseSize = 6) +
+    theme(plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")) +
+    theme(
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank(),
+        axis.title.y=element_blank()
+    ) + ylab("")
+  }else{
+    p[[x]] + guides(color = FALSE, fill = FALSE) + 
+    theme_ArchR(baseSize = 6) +
+    theme(plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")) +
+    theme(
+        axis.ticks.y=element_blank(),
+        axis.title.y=element_blank()
+    ) + ylab("")
+  }
+})
+do.call(cowplot::plot_grid, c(list(nrow = 1, rel_widths = c(2, rep(1, length(p2) - 1))),p2))
+```
+```{r}
+listed.features <- panc.markers
+for(i in 1:length(listed.features)){
+	listed.features[i][[1]] <- listed.features[i][[1]][listed.features[i][[1]] %in% getFeatures(arch.proj)]
+}
+listed.features$prog.beta <- c("MAFB", "INS")
+```
+
+```{r}
+for(i in 13:13){
+	chart.name <- names(listed.features[i])
+	gene.set <- listed.features[i][[1]]
+	if(length(gene.set >0)){
+		
+		
+		p <- plotEmbedding(
+			ArchRProj = arch.proj, 
+			colorBy = "GeneScoreMatrix", 
+			name = unlist(gene.set), 
+			embedding = "UMAP_harmony",
+			quantCut = c(0.01, 0.95),
+			imputeWeights = NULL
+		)
+		p2 <- lapply(p, function(x){
+			x + guides(color = FALSE, fill = FALSE) + 
+				theme_ArchR(baseSize = 6.5) +
+				theme(plot.margin = unit(c(0, 0, 0, 0), "cm")) +
+				theme(
+					axis.text.x=element_blank(), 
+					axis.ticks.x=element_blank(), 
+					axis.text.y=element_blank(), 
+					axis.ticks.y=element_blank()
+				)
+		}
+		)
+		png(filename = paste0(atacProject, "-GeneScoreMatrix-", chart.name, ".png"), height = 1600, width = 1600)
+		do.call(cowplot::plot_grid, c(list(ncol = 3),p2))
+		dev.off()
+	} else{
+		print("Gene set = 0")
+	}
+}
+```
+
+```{r}
+
+```
+
+
