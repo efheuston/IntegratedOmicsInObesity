@@ -261,8 +261,12 @@ markerPeaks <- readRDS(paste0(atacProject, "-MarkerPeaks.RDS"))
 markerList <- getMarkers(markerPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
 heatmapPeaks <- plotMarkerHeatmap(seMarker = markerPeaks, cutOff = "FDR <= 0.1 & Log2FC >= 0.5", transpose = TRUE)
 
-arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "Motif")
+arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "cisbp", force = TRUE)
+arch.proj <- addMotifAnnotations(arch.proj, motifSet = "encode", name = "encode", force = TRUE)
+arch.proj <- addMotifAnnotations(arch.proj, motifSet = "homer", name = "homer", force = TRUE)
+
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
+
 
 
 arch.proj <- addArchRAnnotations(ArchRProj = arch.proj, collection = "EncodeTFBS")
@@ -288,7 +292,7 @@ if("Motif" %ni% names(arch.proj@peakAnnotation)){
 	arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "Motif")
 }
 arch.proj <- addBgdPeaks(arch.proj)
-arch.proj <- addDeviationsMatrix(arch.proj, peakAnnotation = "Motif", force = TRUE)
+arch.proj <- addDeviationsMatrix(arch.proj, peakAnnotation = "Motif", force = TRUE, )
 plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE)
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
@@ -317,10 +321,10 @@ corGSM_MM <- readRDS(paste0(atacProject, "_corGSM_MM.RDS"))
 
 # Integrate scRNA object (Seurat) -----------------------------------------
 
-seurat.object <- readRDS("/Users/heustonef/Desktop/Obesity/scRNA/Obesity_scRNA-SCTRegression-NW-OB.RDS")
+seurat.object <- readRDS("/Users/heustonef/Desktop/Obesity/scRNA/Obesity_scRNA-Anchored-NW-OB-90pctvar.RDS")
 #check import
 colnames(seurat.object@meta.data)
-seurat.object$integrated_snn_res.0.5 <- paste0("SCT", seurat.object$integrated_snn_res.0.5)
+seurat.object$integrated_snn_res.0.5 <- paste0("RNA", seurat.object$integrated_snn_res.0.5)
 
 arch.proj <- addGeneIntegrationMatrix(  # step takes ~95min
 	ArchRProj = arch.proj,
@@ -391,4 +395,25 @@ for(i in 1:length(panc.markers)){
 	
 	
 }
-panc.markers
+
+
+motifPositions <- getPositions(arch.subset)
+
+motifs <- c("FOS", "STAT3", "FOSL2", "NFE2L2", "MAFK", "FOXA1", "FOXA2")
+markerMotifs <- unlist(lapply(motifs, function(x) grep(x, names(motifPositions), value = TRUE)))
+markerMotifs
+
+
+seFoot <- getFootprints(
+	ArchRProj = arch.subset, 
+	positions = motifPositions[markerMotifs], 
+	groupBy = "Harmony_res0.5"
+)
+plotFootprints(
+	seFoot = seFoot,
+	ArchRProj = arch.subset, 
+	normMethod = "Subtract",
+	plotName = "Footprints-Subtract-Bias",
+	addDOC = FALSE,
+	smoothWindow = 5
+)

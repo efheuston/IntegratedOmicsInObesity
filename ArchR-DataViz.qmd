@@ -43,7 +43,7 @@ rownames(metadata) <- metadata$DonorID
 ## Load data
 
 ```{r warning=FALSE}
-arch.proj <- loadArchRProject(showLogo = FALSE)
+arch.proj <- loadArchRProject(path = "~/Desktop/Obesity/snATAC/", showLogo = FALSE)
 ```
 
 ```{r}
@@ -135,25 +135,56 @@ pheatmap::pheatmap(
 ```
 
 ## Motif images
-
 ```{r}
 markerPeaks <- readRDS("~/Desktop/Obesity/snATAC/Obesity_snATAC-MarkerPeaks.RDS")
-enrichEncode <- peakAnnoEnrichment(seMarker = markerPeaks, ArchRProj = arch.proj, peakAnnotation = "EncodeTFBS", cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
-heatmapEncode <- plotEnrichHeatmap(enrichEncode, n = 5, transpose = FALSE)
+```
+Subset archR to exclude clusters 1 and 21
+```{r}
+arch.cell.subset <- BiocGenerics::which(arch.proj$Harmony_res0.5 %ni% c("C1", "C21"))
+cellsSample <- arch.proj$cellNames[arch.cell.subset]
+arch.subset <- arch.proj[cellsSample, ]
+```
+
+```{r}
+n.motifs <- 10
+enrichEncode <- peakAnnoEnrichment(seMarker = markerPeaks, ArchRProj = arch.subset, peakAnnotation = "EncodeTFBS", cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
+heatmapEncode <- plotEnrichHeatmap(enrichEncode, n = n.motifs, transpose = FALSE)
 ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 
-png(filename = paste0(atacProject, "-Top5MotifsPerCluster.png"), height = 1200, width = 800)
+png(filename = paste0(atacProject, "-Top", as.character(n.motifs), "MotifsPerCluster.png"), height = 1200, width = 800)
 ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 dev.off()
 ```
 
 ```{r}
+
+getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, n = 15) +       
+	ggrepel::geom_label_repel(
+        data = rowV[rev(seq_len(n)), ], aes(x = rank, y = combinedVars, label = name), 
+        size = 5,
+        color = "black",
+        nudge_x = 2
+      )
+
+plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = FALSE, n = 15)
+plotVarDev[1:15, "name"]
+
+plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, n = 15)
+ggplot(plotVarDev) + ggrepel::geom_label_repel(size = 5)
+
+png(filename = paste0(atacProject, "-Top15Motifs.png"), height = 800, width = 1200)
+plotVarDev
+dev.off()
+
+getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, n = 15)
 plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, n = 15)
 plotVarDev
 
 png(filename = paste0(atacProject, "-Top15Motifs.png"), height = 800, width = 1200)
 plotVarDev
 dev.off()
+
+
 
 ```
 
@@ -230,34 +261,30 @@ panc.genes <- c("GCG", "IAPP", "INS", "TTR", "MAFB", "SST", "PPY", "CPA1", "PRSS
 ```
 
 ```{r}
-setwd("~/Desktop/")
-p <- plotGroups(ArchRProj = arch.proj, 
-  groupBy = "Obesity", 
-  colorBy = "GeneScoreMatrix", 
-  name = panc.genes,
-  imputeWeights = getImputeWeights(arch.proj)
+
+panc.genes <- c("GCG", "INS", "SST", "KRT19", "PRSS1", "PRSS2", "ETV1", "SERTM1", "XCR1")
+
+p <- plotEmbedding(
+    ArchRProj = arch.proj, 
+    colorBy = "GeneScoreMatrix", 
+    name = panc.genes, 
+    plotAs = "points",
+    embedding = "UMAP_harmony",
+    quantCut = c(0.01, 0.95),
+    imputeWeights = NULL
 )
-p2 <- lapply(seq_along(p), function(x){
-  if(x != 1){
-    p[[x]] + guides(color = FALSE, fill = FALSE) + 
-    theme_ArchR(baseSize = 6) +
-    theme(plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")) +
+p2 <- lapply(p, function(x){
+    x + guides(color = FALSE, fill = FALSE) + 
+    theme_ArchR(baseSize = 6.5) +
+    theme(plot.margin = unit(c(0, 0, 0, 0), "cm")) +
     theme(
+        axis.text.x=element_blank(), 
+        axis.ticks.x=element_blank(), 
         axis.text.y=element_blank(), 
-        axis.ticks.y=element_blank(),
-        axis.title.y=element_blank()
-    ) + ylab("")
-  }else{
-    p[[x]] + guides(color = FALSE, fill = FALSE) + 
-    theme_ArchR(baseSize = 6) +
-    theme(plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")) +
-    theme(
-        axis.ticks.y=element_blank(),
-        axis.title.y=element_blank()
-    ) + ylab("")
-  }
+        axis.ticks.y=element_blank()
+    )
 })
-do.call(cowplot::plot_grid, c(list(nrow = 1, rel_widths = c(2, rep(1, length(p2) - 1))),p2))
+do.call(cowplot::plot_grid, c(list(ncol = 3),p2))
 ```
 ```{r}
 listed.features <- panc.markers
@@ -304,7 +331,193 @@ for(i in 13:13){
 ```
 
 ```{r}
+plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "CPA1")
+```
+
+```{r}
+
+plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "predictedGroup_Un") +
+	theme_ArchR(legendTextSize = 10)
+plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "Harmony_res0.5",) +
+	theme_ArchR(legendTextSize = 10)
+plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", name = "Phase") +
+	theme_ArchR(legendTextSize = 10)
 
 ```
+```{r}
+
+```
+
+```{r}
+p <- plotEmbedding(
+    ArchRProj = arch.proj, 
+    colorBy = "GeneScoreMatrix", 
+    name = c("FOS", "STAT3", "IGFBP7", "FABP4"), 
+    embedding = "UMAP_harmony",
+    quantCut = c(0.01, 0.95),
+    imputeWeights = NULL
+)
+		p2 <- lapply(p, function(x){
+			x + guides(color = FALSE, fill = FALSE) + 
+				theme_ArchR(baseSize = 6.5) +
+				theme(plot.margin = unit(c(0, 0, 0, 0), "cm")) +
+				theme(
+					axis.text.x=element_blank(), 
+					axis.ticks.x=element_blank(), 
+					axis.text.y=element_blank(), 
+					axis.ticks.y=element_blank()
+				)
+		}
+		)
+do.call(cowplot::plot_grid, c(list(ncol = 3),p2))
+
+```
+
+trackplotting
+
+```{r}
+ p<- plotBrowserTrack(
+    ArchRProj = arch.subset, 
+    groupBy = "Harmony_res0.5", 
+    geneSymbol = c("FOS", "STAT3"), 
+    upstream = 100000,
+    downstream = 20000
+)
+```
+```{r}
+grid::grid.newpage()
+grid::grid.draw(p$FOS)
+```
+
+
+```{r}
+arch.cell.subset <- BiocGenerics::which(arch.subset$Harmony_res0.5 %in% "C8")
+cellsSample <- arch.subset$cellNames[arch.cell.subset]
+new.subset <- arch.subset[cellsSample, ]
+
+p<- plotBrowserTrack(
+	ArchRProj = new.subset, 
+	groupBy = "Obesity", 
+	geneSymbol = c("MALAT1", "NEAT1"), 
+	upstream = 2500,
+	downstream = 2500
+)
+
+
+```
+
+
+```{r}
+grid::grid.newpage()
+grid::grid.draw(p$MALAT1)
+```
+```{r}
+arch.cell.subset <- BiocGenerics::which(arch.subset$Harmony_res0.5 %in% c("C5", "C6"))
+cellsSample <- arch.subset$cellNames[arch.cell.subset]
+new.subset <- arch.subset[cellsSample, ]
+
+p<- plotBrowserTrack(
+	ArchRProj = new.subset, 
+	groupBy = "Obesity", 
+	geneSymbol = c("IGFBP7"), 
+	upstream = 25000,
+	downstream = 25000
+)
+grid::grid.newpage()
+grid::grid.draw(p$IGFBP7)
+
+
+```
+```{r}
+p <- plotEmbedding(
+    ArchRProj = arch.proj, 
+    colorBy = "TileMatrix", 
+    name = c("FOS", "STAT3", "IGFBP7", "FABP4"), 
+    embedding = "UMAP_harmony",
+    quantCut = c(0.01, 0.95),
+    imputeWeights = NULL
+)
+		p2 <- lapply(p, function(x){
+			x + guides(color = FALSE, fill = FALSE) + 
+				theme_ArchR(baseSize = 6.5) +
+				theme(plot.margin = unit(c(0, 0, 0, 0), "cm")) +
+				theme(
+					axis.text.x=element_blank(), 
+					axis.ticks.x=element_blank(), 
+					axis.text.y=element_blank(), 
+					axis.ticks.y=element_blank()
+				)
+		}
+		)
+do.call(cowplot::plot_grid, c(list(ncol = 3),p2))
+
+```
+
+
+```{r}
+ p<- plotBrowserTrack(
+    ArchRProj = arch.subset, 
+    groupBy = "Harmony_res0.5", 
+    geneSymbol = c("MALAT1"),
+    upstream = 90000,
+    downstream = 20000
+)
+```
+```{r}
+grid::grid.newpage()
+grid::grid.draw(p$MALAT1)
+```
+```{r}
+
+getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, n = 15) +       
+	ggrepel::geom_label_repel(
+        data = rowV[rev(seq_len(n)), ], aes(x = rank, y = combinedVars, label = name), 
+        size = 5,
+        color = "black",
+        nudge_x = 2
+      )
+
+plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = FALSE, n = 15)
+plotVarDev[1:15, "name"]
+
+plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, n = 15)
+ggplot(plotVarDev) + ggrepel::geom_label_repel(size = 5)
+
+png(filename = paste0(atacProject, "-Top15Motifs.png"), height = 800, width = 1200)
+plotVarDev
+dev.off()
+
+getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, n = 15)
+plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, n = 15)
+plotVarDev
+
+png(filename = paste0(atacProject, "-Top15Motifs.png"), height = 800, width = 1200)
+plotVarDev
+dev.off()
+
+
+
+```
+
+```{r}
+markerPeaks <- getMarkerFeatures(arch.subset, groupBy = "Harmony_res0.5", useMatrix = "PeakMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
+
+```
+```{r}
+markerList
+```
+
+```{r}
+n.motifs <- 3
+enrichEncode <- peakAnnoEnrichment(seMarker = markerPeaks, ArchRProj = arch.subset, peakAnnotation = "EncodeTFBS", cutOff = "FDR <= 0.1 & Log2FC >= 0.5")
+heatmapEncode <- plotEnrichHeatmap(enrichEncode, n = n.motifs, transpose = FALSE)
+ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+
+png(filename = paste0(atacProject, "-Top", as.character(n.motifs), "MotifsPerCluster.png"), height = 1200, width = 800)
+ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
+dev.off()
+``````
+
+
 
 

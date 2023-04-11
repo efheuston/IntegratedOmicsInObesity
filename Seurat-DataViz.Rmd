@@ -18,7 +18,7 @@ obese (OB)
 This document is primarily for data visualization. Additional analyses should be run in `scRNASeq-Seurat.R`  
 # Setup
 ## Load libraries and local functions
-```{r}
+```{r warning=FALSE}
 library(dplyr)
 library(Seurat)
 library(patchwork)
@@ -59,7 +59,7 @@ table(seurat.object$Obesity)
 ```
 
 ```{r}
-table(seurat.object$integrated_snn_res.0.5)
+table(seurat.object$integrated_snn_res.0.)
 ```
 
 
@@ -179,10 +179,46 @@ library(limma)
 library(ggplot2)
 ```
 ```{r}
-propeller(clusters = Idents(seurat.object), sample = seurat.object$orig.ident, group = seurat.object$Obesity, transform = "logit", trend = FALSE, robust = FALSE)
+propeller(clusters = Idents(seurat.object), sample = seurat.object$orig.ident, group = seurat.object$Obesity, transform = "logit", trend = TRUE)
 ```
 ```{r}
 # Plot cell type proportions
 plotCellTypeProps(clusters=seurat.object$Obesity, sample=seurat.object$integrated_snn_res.0.5)
 ```
+```{r}
+BiocManager::install(c("CellBench", "BiocStyle", "scater"))
+
+remotes::install_github("Oshlack/speckle", build_vignettes = TRUE, 
+dependencies = "Suggest")
+```
+
+```{r}
+top.rnamarkers <- c("GCG", "INS", "SST", "HS6ST3", "PRSS2", "REG1B", "IGFBP7", "S100A6", "C11orf96", "IAPP", "TTR", "FTH1", "PPY", "TPSB2", "NEAT1")
+```
+```{r}
+png(filename = "dotplot.png", height = 1600, width = 1000)
+DotPlot(seurat.object, features = top.rnamarkers, split.by = "Obesity", cols = c("blue3", "red3"), dot.min = .21, scale.by = 'radius', dot.scale = 13)
+dev.off()
+```
+```{r}
+stat.fos.markers <- c("FOS", "STAT3", "IGFBP7", "FABP4", "TIMP1", "MGP", "C11orf96")
+
+DotPlot(seurat.object, features = stat.fos.markers, split.by = "Obesity", cols = c("gold", "blue3", "red3"), dot.min = .1)
+VlnPlot(subset(seurat.object, idents = c(8, 11)), features = stat.fos.markers, split.by = "Obesity", split.plot = TRUE, pt.size = 0, ncol = 2) + theme(legend.position = "right")
+```
+```{r}
+foxa.markers <- c("FOXA1", "FOXA2", "NEAT1", "MALAT1", "VMP1", "DTNA", "LPP", "BTB20", "CD44")
+VlnPlot(subset(seurat.object, idents = c(18)), features = foxa.markers, split.by = "Obesity", split.plot = TRUE, pt.size = 0, ncol = 2) + theme(legend.position = "right")
+VlnPlot(seurat.object, features = c("NEAT1", "MALAT1"), split.by = "Obesity", split.plot = TRUE, pt.size = 0, ncol = 1) + theme(legend.position = "right")
+```
+
+
+
+
+
+
+
+
+
+
 
