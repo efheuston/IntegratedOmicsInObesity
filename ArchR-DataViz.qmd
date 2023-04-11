@@ -503,8 +503,18 @@ dev.off()
 markerPeaks <- getMarkerFeatures(arch.subset, groupBy = "Harmony_res0.5", useMatrix = "PeakMatrix", bias = c("TSSEnrichment", "log10(nFrags)"), testMethod = "wilcoxon")
 
 ```
+
 ```{r}
-markerList
+markerPeaks <- readRDS("~/Desktop/Obesity/snATAC/Obesity_snATAC-MarkerPeaks.RDS")
+```
+
+```{r}
+markerList <-  getMarkers(markerPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1.25")
+seGS <- getGroupSE(ArchRProj = arch.proj, useMatrix = "GeneScoreMatrix", groupBy = "Harmony_res0.5") 
+```
+```{r}
+seGS
+
 ```
 
 ```{r}
