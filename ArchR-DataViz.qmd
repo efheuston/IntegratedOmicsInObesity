@@ -157,15 +157,6 @@ dev.off()
 ```
 
 ```{r}
-
-getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, n = 15) +       
-	ggrepel::geom_label_repel(
-        data = rowV[rev(seq_len(n)), ], aes(x = rank, y = combinedVars, label = name), 
-        size = 5,
-        color = "black",
-        nudge_x = 2
-      )
-
 plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = FALSE, n = 15)
 plotVarDev[1:15, "name"]
 
@@ -185,6 +176,36 @@ plotVarDev
 dev.off()
 
 
+
+```
+```{r}
+plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = FALSE, n = 15)
+rowV <- data.frame(plotVarDev)
+rowV$name <- unlist(lapply(strsplit(as.character(rowV$name), "_"), '[[', 1))
+
+head(rowV)	
+
+ggplot(rowV, aes(x = rank, y = combinedVars, color = combinedVars)) +
+	geom_point(size = 1) + 
+	scale_color_gradientn(colors = paletteContinuous(set = "comet")) +
+	ggrepel::geom_label_repel(
+		data = rowV[rev(seq_len(15)), ], aes(x = rank, y = combinedVars, label = name), 
+		size = 10,
+		color = "black",
+		nudge_x = 2
+	) + theme_ArchR() + ylab("Variability") + xlab("Rank Sorted Annotations")
+
+png(filename = "plotVarDev.png", height = 800, width = 1200)
+ggplot(rowV, aes(x = rank, y = combinedVars, color = combinedVars)) +
+	geom_point(size = 1) + 
+	scale_color_gradientn(colors = paletteContinuous(set = "comet")) +
+	ggrepel::geom_label_repel(
+		data = rowV[rev(seq_len(15)), ], aes(x = rank, y = combinedVars, label = name), 
+		size = 7,
+		color = "black",
+		nudge_x = 3) + 
+	theme_ArchR() + ylab("Variability") + xlab("Rank Sorted Annotations")
+dev.off()
 
 ```
 
