@@ -417,3 +417,49 @@ plotFootprints(
 	addDOC = FALSE,
 	smoothWindow = 5
 )
+
+
+
+
+
+# Export for UCSC browser -------------------------------------------------
+
+#export big wig files
+getGroupBW(
+	ArchRProj = arch.subset,
+	groupBy = "Harmony_res0.5",
+	normMethod = "ReadsInTSS", 
+	tileSize = 100, 
+	maxCells = 1000,
+	ceiling = 4,
+	verbose = TRUE, 
+	threads = getArchRThreads(),
+	logFile = createLogFile("getGroupBW")
+)
+
+getGroupBW(
+	ArchRProj = arch.subset,
+	groupBy = "Obesity",
+	normMethod = "ReadsInTSS", 
+	tileSize = 100, 
+	maxCells = 1000,
+	ceiling = 4,
+	verbose = TRUE, 
+	threads = getArchRThreads(),
+	logFile = createLogFile("getGroupBW")
+)
+
+#export peak files
+peak.lists <- list.files(path = "~/Desktop/Obesity/snATAC/PeakCalls", full.names = TRUE, pattern = ".rds", ignore.case = TRUE)
+for(i in peak.lists){
+	cluster <- str_split(basename(i), "-")[[1]][1]
+	gr <- readRDS(i)
+	df <- df <- data.frame(seqnames=seqnames(gr),
+												 starts=start(gr)-1,
+												 ends=end(gr),
+												 names=c(rep(".", length(gr))),
+												 scores=c(rep(".", length(gr))),
+												 strands=strand(gr)
+	)
+	write.table(df, file=paste0("~/Desktop/Obesity/snATAC/", cluster, "_peaks.bed"), quote=F, sep="\t", row.names=F, col.names=F)
+}
