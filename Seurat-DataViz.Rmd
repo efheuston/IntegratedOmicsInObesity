@@ -213,12 +213,53 @@ VlnPlot(seurat.object, features = c("NEAT1", "MALAT1"), split.by = "Obesity", sp
 ```
 
 
+```{r}
+igfbp.subset <- subset(seurat.object, idents = c(8, 11))
+Fig8Markers <- c("FOS", "STAT3", "IGFBP7", "FABP4", "TIMP1", "MGP", "C11orf96", "INS")
+VlnPlot(igfbp.subset, features = Fig8Markers, split.by = "Obesity", split.plot = TRUE, ncol = 2, pt.size = 0) + theme(legend.position = "right")
+```
 
 
 
 
+Subset RNA_11 and look for ob vs ln markers
+```{r}
+rna11 <- subset(seurat.object, idents = 11)
+Idents(rna11) <- "Obesity"
+rna11 <- PrepSCTFindMarkers(rna11, assay = "SCT")
+markers.rna11.all <- FindMarkers(rna11, ident.1 = "NW", ident.2 = "OB", only.pos = FALSE, min.pct = 0.25, logfc.threshold = 0.25)
+markers.rna11.all %>%
+	group_by(cluster) %>%
+	arrange(desc(abs(avg_log2FC)), .by_group = TRUE)
+
+```
 
 
 
+
+```{r}
+##Split Object by (assign cell cluster as identity) identity then differential exp or FoldChange for each cluster by condition
+# Idents(seurat.object)
+object.split<-SplitObject(seurat.object, split.by = "ident")
+
+###assign identity as condition
+for (i in 1:length(object.split)) {
+Idents(object.split[[i]]) <- "Obesity" }
+
+###Check the split object and names of individual cluster in the file
+# object.split
+
+###cluster wise FC and save the file. FC will be as in the same sequence as the split object cluster sequence separated by header
+# pos = c(1, 3)
+for(x in object.split){
+	print(x)
+	x <- PrepSCTFindMarkers(x)
+	try(x <- FindMarkers(x, ident.1 = 'OB', ident.2= 'NW', min.pct=0.25, logfc.threshold=0.25))
+	try(write.table(x, file = "OBbyNWpercluster.txt", sep = "\t", quote = FALSE, append = TRUE))
+}
+
+
+
+```
 
 
