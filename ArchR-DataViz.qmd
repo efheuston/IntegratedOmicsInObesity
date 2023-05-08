@@ -46,6 +46,12 @@ rownames(metadata) <- metadata$DonorID
 arch.proj <- loadArchRProject(path = "~/Desktop/Obesity/snATAC/", showLogo = FALSE)
 ```
 
+Subset archR to exclude clusters 1 and 21
+```{r}
+arch.cell.subset <- BiocGenerics::which(arch.proj$Harmony_res0.5 %ni% c("C1", "C21"))
+cellsSample <- arch.proj$cellNames[arch.cell.subset]
+arch.subset <- arch.proj[cellsSample, ]
+```
 ```{r}
 cellcoldata <- getCellColData(arch.proj, select = c("log10(nFrags)", "TSSEnrichment"))
 
@@ -137,12 +143,6 @@ pheatmap::pheatmap(
 ## Motif images
 ```{r}
 markerPeaks <- readRDS("~/Desktop/Obesity/snATAC/Obesity_snATAC-MarkerPeaks.RDS")
-```
-Subset archR to exclude clusters 1 and 21
-```{r}
-arch.cell.subset <- BiocGenerics::which(arch.proj$Harmony_res0.5 %ni% c("C1", "C21"))
-cellsSample <- arch.proj$cellNames[arch.cell.subset]
-arch.subset <- arch.proj[cellsSample, ]
 ```
 
 ```{r}
@@ -452,7 +452,7 @@ grid::grid.draw(p$IGFBP7)
 ```{r}
 p <- plotEmbedding(
     ArchRProj = arch.proj, 
-    colorBy = "TileMatrix", 
+    colorBy = "GeneScoreMatrix", 
     name = c("FOS", "STAT3", "IGFBP7", "FABP4"), 
     embedding = "UMAP_harmony",
     quantCut = c(0.01, 0.95),
@@ -479,15 +479,48 @@ do.call(cowplot::plot_grid, c(list(ncol = 3),p2))
  p<- plotBrowserTrack(
     ArchRProj = arch.subset, 
     groupBy = "Harmony_res0.5", 
-    geneSymbol = c("MALAT1"),
+    geneSymbol = c("STAT3", "IGFBP7"),
     upstream = 90000,
-    downstream = 20000
+    downstream = 20000, 
+    verbose = FALSE
 )
 ```
 ```{r}
 grid::grid.newpage()
-grid::grid.draw(p$MALAT1)
+grid::grid.draw(p$STAT3)
 ```
+```{r}
+q<- plotBrowserTrack(
+    ArchRProj = arch.subset, 
+    groupBy = "Harmony_res0.5", 
+    geneSymbol = c("FOS", "FABP4", "TIMP1", "MGP"),
+    upstream = 20000,
+    downstream = 20000
+)
+
+```
+```{r}
+grid::grid.draw(q$FOS)
+
+```
+```{r}
+t<- plotBrowserTrack(
+    ArchRProj = arch.subset, 
+    groupBy = "Harmony_res0.5", 
+    geneSymbol = c("FOS","FABP4", "TIMP1", "MGP", "INS"),
+    upstream = 10000,
+    downstream = 10000, 
+    verbose = FALSE
+)
+
+```
+
+
+
+
+
+
+
 ```{r}
 
 getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, n = 15) +       
@@ -547,7 +580,7 @@ ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_lege
 png(filename = paste0(atacProject, "-Top", as.character(n.motifs), "MotifsPerCluster.png"), height = 1200, width = 800)
 ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 dev.off()
-``````
+```
 
 
 
