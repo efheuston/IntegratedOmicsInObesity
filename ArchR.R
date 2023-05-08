@@ -463,3 +463,44 @@ for(i in peak.lists){
 	)
 	write.table(df, file=paste0("~/Desktop/Obesity/snATAC/", cluster, "_peaks.bed"), quote=F, sep="\t", row.names=F, col.names=F)
 }
+
+#create track files
+
+track.file <- paste0("UCSCBrowserTrackFile-", track.type, ".txt")
+track.extension <- ".bw"
+track.type <- "bigWig"
+track.name <- c("C", "ATAC_") # pos[1] is the target, pos[2] is the replacement
+track.descriptor <- "ATAC_bw"
+track.url <- "https://hpc.nih.gov/~heustonef/"
+file.list <- list.files(path = "~/Desktop/Obesity/snATAC/GroupBigWigs/Harmony_res0.5", full.names = FALSE, pattern = ".bw", ignore.case = TRUE)
+track.list <-c()
+for(i in file.list){
+	track.groupID <- str_split(i, "-T")[[1]][1]
+	track.command <- paste0("track type=", track.type, 
+													" name=", gsub(track.name[1], track.name[2], track.groupID), 
+													" description=", track.descriptor, 
+													" bigDataUrl=", track.url, i)
+	track.list <- c(track.list, track.command)
+}
+lapply(track.list, write, track.file, append=TRUE)
+track.list
+
+
+file.list <- list.files(path = "~/Desktop/Obesity/snATAC/PeakCalls/", full.names = FALSE, pattern = ".bed", ignore.case = FALSE, recursive = FALSE)
+rack.extension <- ".bed"
+track.type <- "BED"
+track.name <- c("C", "peaks_") # pos[1] is the target, pos[2] is the replacement
+track.descriptor <- "ATAC_bed"
+track.url <- "https://hpc.nih.gov/~heustonef/"
+track.file <- paste0("UCSCBrowserTrackFile-", track.type, ".txt")
+track.list <-c()
+for(i in file.list){
+	track.groupID <- str_split(i, "-T")[[1]][1]
+	track.command <- paste0("track type=", track.type, #Track type not required for BED (only for BED details) 
+													" name=", gsub(track.name[1], track.name[2], track.groupID), 
+													" description=", track.descriptor, 
+													" bigDataUrl=", track.url, i)
+	track.list <- c(track.list, track.command)
+}
+lapply(track.list, write, track.file, append=TRUE)
+track.list
