@@ -47,11 +47,13 @@ arch.proj <- loadArchRProject(path = "~/Desktop/Obesity/snATAC/", showLogo = FAL
 ```
 
 Subset archR to exclude clusters 1 and 21
+
 ```{r}
 arch.cell.subset <- BiocGenerics::which(arch.proj$Harmony_res0.5 %ni% c("C1", "C21"))
 cellsSample <- arch.proj$cellNames[arch.cell.subset]
 arch.subset <- arch.proj[cellsSample, ]
 ```
+
 ```{r}
 cellcoldata <- getCellColData(arch.proj, select = c("log10(nFrags)", "TSSEnrichment"))
 
@@ -106,27 +108,32 @@ png(filename = paste0(atacProject, "-UMAPharmony-cluster.png"), height = 1200, w
 plotEmbedding(ArchRProj = arch.proj, colorBy = "cellColData", name = "Harmony_res0.5", embedding = "UMAP_harmony", plotAs = "points")
 dev.off()
 ```
+
 ### cells per category
+
 ```{r}
 table(arch.proj$Obesity)
 ```
 
 ### cells per harmony cluster
+
 ```{r}
 table(arch.proj$Harmony_res0.5)
 ```
+
 ```{r}
 table(arch.proj$Harmony_res0.5, arch.proj$Obesity)
 ```
 
 Donor contribution per cluster
+
 ```{r}
 table(arch.proj$DonorID, arch.proj$Harmony_res0.5)
 ```
+
 ```{r}
 length(unique(arch.proj$DonorID))
 ```
-
 
 ```{r}
 cM <- confusionMatrix(paste0(arch.proj$Harmony_res0.5), paste0(arch.proj$Obesity))
@@ -141,6 +148,7 @@ pheatmap::pheatmap(
 ```
 
 ## Motif images
+
 ```{r}
 markerPeaks <- readRDS("~/Desktop/Obesity/snATAC/Obesity_snATAC-MarkerPeaks.RDS")
 ```
@@ -253,7 +261,8 @@ do.call(cowplot::plot_grid, c(list(nrow = 1, rel_widths = c(2, rep(1, length(p2)
 
 ```
 
-## plotting gene score matrix 
+## plotting gene score matrix
+
 Favourite genes
 
 ```{r}
@@ -286,6 +295,7 @@ p2 <- lapply(p, function(x){
 })
 do.call(cowplot::plot_grid, c(list(ncol = 3),p2))
 ```
+
 ```{r}
 listed.features <- panc.markers
 for(i in 1:length(listed.features)){
@@ -344,6 +354,7 @@ plotEmbedding(arch.proj, embedding = "UMAP_harmony", colorBy = "cellColData", na
 	theme_ArchR(legendTextSize = 10)
 
 ```
+
 ```{r}
 
 ```
@@ -384,11 +395,11 @@ trackplotting
     downstream = 20000
 )
 ```
+
 ```{r}
 grid::grid.newpage()
 grid::grid.draw(p$FOS)
 ```
-
 
 ```{r}
 arch.cell.subset <- BiocGenerics::which(arch.subset$Harmony_res0.5 %in% "C8")
@@ -406,11 +417,11 @@ p<- plotBrowserTrack(
 
 ```
 
-
 ```{r}
 grid::grid.newpage()
 grid::grid.draw(p$MALAT1)
 ```
+
 ```{r}
 arch.cell.subset <- BiocGenerics::which(arch.subset$Harmony_res0.5 %in% c("C5", "C6"))
 cellsSample <- arch.subset$cellNames[arch.cell.subset]
@@ -428,6 +439,7 @@ grid::grid.draw(p$IGFBP7)
 
 
 ```
+
 ```{r}
 p <- plotEmbedding(
     ArchRProj = arch.proj, 
@@ -453,7 +465,6 @@ do.call(cowplot::plot_grid, c(list(ncol = 3),p2))
 
 ```
 
-
 ```{r}
  p<- plotBrowserTrack(
     ArchRProj = arch.subset, 
@@ -464,10 +475,12 @@ do.call(cowplot::plot_grid, c(list(ncol = 3),p2))
     verbose = FALSE
 )
 ```
+
 ```{r}
 grid::grid.newpage()
 grid::grid.draw(p$STAT3)
 ```
+
 ```{r}
 q<- plotBrowserTrack(
     ArchRProj = arch.subset, 
@@ -478,10 +491,12 @@ q<- plotBrowserTrack(
 )
 
 ```
+
 ```{r}
 grid::grid.draw(q$FOS)
 
 ```
+
 ```{r}
 t<- plotBrowserTrack(
     ArchRProj = arch.subset, 
@@ -493,12 +508,6 @@ t<- plotBrowserTrack(
 )
 
 ```
-
-
-
-
-
-
 
 ```{r}
 
@@ -545,6 +554,7 @@ markerPeaks <- readRDS("~/Desktop/Obesity/snATAC/Obesity_snATAC-MarkerPeaks.RDS"
 markerList <-  getMarkers(markerPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1.25")
 seGS <- getGroupSE(ArchRProj = arch.proj, useMatrix = "GeneScoreMatrix", groupBy = "Harmony_res0.5") 
 ```
+
 ```{r}
 seGS
 
@@ -560,7 +570,3 @@ png(filename = paste0(atacProject, "-Top", as.character(n.motifs), "MotifsPerClu
 ComplexHeatmap::draw(heatmapEncode, heatmap_legend_side = "bot", annotation_legend_side = "bot")
 dev.off()
 ```
-
-
-
-
