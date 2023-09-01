@@ -27,7 +27,7 @@ predicted.doubletRate <- 0.05
 if(comp.type == "macbookPro"){
 	rna.dir <- "/Users/heustonef/Desktop/Obesity/scRNA/"
 	path_to_data <- "/Users/heustonef/Desktop/PancDB_data/scRNA_noBams"
-	sourceable.functions <- list.files(path = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions", pattern = "*.R$", full.names = TRUE)
+	sourceable.functions <- list.files(path = "/Users/heustonef/OneDrive/SingleCellMetaAnalysis/GitRepositories/RFunctions", pattern = "*.R$", full.names = TRUE)
 	metadata.location <- "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
 } else if(comp.type == "biowulf"){
 	rna.dir <- "/data/CRGGH/heustonef/hpapdata/cellranger_scRNA/"
@@ -224,7 +224,19 @@ DimPlot(seurat.object, reduction = "umap", group.by = "DonorID", cols = color.pa
 
 
 FeaturePlot(seurat.object, reduction = "umap", features = "BMI")
+FeaturePlot(seurat.object, features = c("NEAT1", "STAT3", "MALAT1"), ncol = 3)
 
+
+# Plot by lean to obese ratio ---------------------------------------------
+
+ob.table <- data.frame(table(seurat.object$integrated_snn_res.0.5, seurat.object$Obesity))
+ob.table <- reshape(ob.table, idvar = "Var1", timevar = "Var2", direction = "wide")
+ob.table$ratio <- format(round(x = ob.table$Freq.NW/ob.table$Freq.OB, digits = 2), nsmall = 2)
+
+seurat.object@meta.data$ratio <- NA
+seurat.object@meta.data$ratio <- with(seurat.object@meta.data, ob.table$ratio[match(integrated_snn_res.0.5, ob.table$Var1)])
+head(seurat.object@meta.data)
+DimPlot(seurat.object, reduction = "umap", group.by = "ratio", label = T, label.size = 7, repel = T)
 
 
 # Find cluster biomarkers -------------------------------------------------

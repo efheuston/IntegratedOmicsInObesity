@@ -14,9 +14,9 @@ comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
 if(comp.type == "macbookPro"){
 	working.dir <- "/Users/heustonef/Desktop/Obesity/snATAC/"
 	path_to_data <- c(list.dirs("/Users/heustonef/Desktop/PancDB_Data/scATAC_noBams/", full.names = TRUE, recursive = FALSE))
-	records.dir <- "~/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
-	metadata.location <- "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
-	functions.path <- "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions/"
+	records.dir <- "~/OneDrive/SingleCellMetaAnalysis/GitRepositories/PancObesity/"
+	metadata.location <- "/Users/heustonef/OneDrive/SingleCellMetaAnalysis/"
+	functions.path <- "/Users/heustonef/OneDrive/SingleCellMetaAnalysis/GitRepositories/RFunctions/"
 } else if(comp.type == "biowulf"){
 	working.dir <- "/data/CRGGH/heustonef/hpapdata/cellranger_snATAC"
 	records.dir <- working.dir
@@ -239,6 +239,32 @@ markerList$C1
 # saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
 
 
+plotEmbedding(
+	ArchRProj = arch.proj, 
+	colorBy = "GeneScoreMatrix", 
+	name = "PECAM1", 
+	plotAs = "points",
+	embedding = "UMAP_harmony",
+	quantCut = c(0.01, 0.95),
+	imputeWeights = NULL)
+
+plotEmbedding(
+	ArchRProj = arch.proj, 
+	colorBy = "MotifMatrix", 
+	name = "z:STAT3_777", 
+	plotAs = "points",
+	embedding = "UMAP_harmony",
+	quantCut = c(0.01, 0.95),
+	imputeWeights = getImputeWeights(arch.proj))
+
+for(i in names(markerList)){
+	df <- data.frame(markerList[i])
+	df <- df %>% select(5, 7, 8, 9)
+	write.table(x = df, file = paste0("snATAC_", i, "-markerGeneEnrichment.txt"), sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
+	
+}
+
+
 # Calling peaks -----------------------------------------------------------
 arch.proj <- loadArchRProject(working.dir)
 library(BSgenome.Hsapiens.UCSC.hg38)
@@ -295,6 +321,30 @@ arch.proj <- addBgdPeaks(arch.proj)
 arch.proj <- addDeviationsMatrix(arch.proj, peakAnnotation = "Motif", force = TRUE, )
 plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE)
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
+
+## subset archR project
+for(i in c("C2", "C3", "C4")){
+	arch.cell.subset <- BiocGenerics::which(arch.proj$Harmony_res0.5 %in% i)
+	cellsSample <- arch.proj$cellNames[arch.cell.subset]
+	arch.subset <- arch.proj[cellsSample, ]
+	
+	arch.subset <- addBgdPeaks(arch.subset)
+	arch.subset <- addDeviationsMatrix(arch.subset, peakAnnotation = "Motif", force = TRUE, )
+	plotVarDev <- getVarDeviations(arch.subset, name = "MotifMatrix", plot = TRUE)
+	saveArchRProject(ArchRProj = arch.subset, outputDirectory = "/Users/heustonef/Desktop/Obesity/snATAC/varmotifsubset/", load = TRUE)
+	
+	motifPositions <- getPositions(arch.subset)
+	
+	# Deviant Motifs ----------------------------------------------------------
+
+	seGroupMotif <- getGroupSE(arch.subset, useMatrix = "MotifMatrix", groupBy = paste0("Harmony_res", as.character(res)))
+	saveRDS(seGroupMotif, file = paste0(atacProject, "_seGroupMotif.RDS"))
+	corGSM_MM <- correlateMatrices(arch.subset, useMatrix1 = "GeneScoreMatrix", useMatrix2 = "MotifMatrix", reducedDims = "Harmony")
+	saveRDS(corGSM_MM, file = paste0(atacProject, "_corGSM_MM.RDS"))
+	
+	saveArchRProject(ArchRProj = arch.subset, outputDirectory = "/Users/heustonef/Desktop/Obesity/snATAC/varmotifsubset/", load = TRUE)
+	# corGSM_MM <- readRDS(paste0(atacProject, "_C", as.character(i), "-corGSM_MM.RDS"))
+}
 
 
 
@@ -504,3 +554,15 @@ for(i in file.list){
 }
 lapply(track.list, write, track.file, append=TRUE)
 track.list
+
+
+p <- plotEmbedding(
+	ArchRProj = arch.proj, 
+	colorBy = "MotifMatrix", 
+	name = "z:STAT3_777", 
+	embedding = "UMAP_harmony",
+	imputeWeights = getImputeWeights(arch.proj)
+)
+
+plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, threads = 1)
+
