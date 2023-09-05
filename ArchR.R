@@ -288,7 +288,7 @@ markerList <- getMarkers(markerPeaks, cutOff = "FDR <= 0.01 & Log2FC >= 1")
 heatmapPeaks <- plotMarkerHeatmap(seMarker = markerPeaks, cutOff = "FDR <= 0.1 & Log2FC >= 0.5", transpose = TRUE)
 
 arch.proj <- addMotifAnnotations(arch.proj, motifSet = "cisbp", name = "cisbp", force = TRUE)
-arch.proj <- addMotifAnnotations(arch.proj, motifSet = "encode", name = "encode", force = TRUE)
+arch.proj <- addMotifAnnotations(arch.proj, motifSet = "encode", name = "encode", force = TRUE) # 306 min
 arch.proj <- addMotifAnnotations(arch.proj, motifSet = "homer", name = "homer", force = TRUE)
 
 saveArchRProject(ArchRProj = arch.proj, outputDirectory = working.dir, load = TRUE)
@@ -563,6 +563,5 @@ p <- plotEmbedding(
 	embedding = "UMAP_harmony",
 	imputeWeights = getImputeWeights(arch.proj)
 )
-
 plotVarDev <- getVarDeviations(arch.proj, name = "MotifMatrix", plot = TRUE, threads = 1)
 
