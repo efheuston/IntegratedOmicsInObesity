@@ -11,7 +11,7 @@ rnaProject <- "Obesity_scRNA-Anchored-NW-OB"
 regression.vars <- c("sequencerID", "SampleSex", "SampleAge")
 cum.var.thresh <- 90
 resolution <- 0.5
-comp.type <- "biowulf" # one of macbookPro, biowulf, or workPC
+comp.type <- "macbookPro" # one of macbookPro, biowulf, or workPC
 do.sctransform <- "each" # one of FALSE, each, pooled
 
 ## infrequently modified
@@ -27,7 +27,7 @@ predicted.doubletRate <- 0.05
 if(comp.type == "macbookPro"){
 	rna.dir <- "/Users/heustonef/Desktop/Obesity/scRNA/"
 	path_to_data <- "/Users/heustonef/Desktop/PancDB_data/scRNA_noBams"
-	sourceable.functions <- list.files(path = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions", pattern = "*.R$", full.names = TRUE)
+	sourceable.functions <- list.files(path = "/Users/heustonef/OneDrive/SingleCellMetaAnalysis/GitRepositories/RFunctions", pattern = "*.R$", full.names = TRUE)
 	metadata.location <- "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/"
 } else if(comp.type == "biowulf"){
 	rna.dir <- "/data/CRGGH/heustonef/hpapdata/cellranger_scRNA/"
@@ -224,7 +224,19 @@ DimPlot(seurat.object, reduction = "umap", group.by = "DonorID", cols = color.pa
 
 
 FeaturePlot(seurat.object, reduction = "umap", features = "BMI")
+FeaturePlot(seurat.object, features = c("NEAT1", "STAT3", "MALAT1"), ncol = 3)
 
+
+# Plot by lean to obese ratio ---------------------------------------------
+
+ob.table <- data.frame(table(seurat.object$integrated_snn_res.0.5, seurat.object$Obesity))
+ob.table <- reshape(ob.table, idvar = "Var1", timevar = "Var2", direction = "wide")
+ob.table$ratio <- format(round(x = ob.table$Freq.NW/ob.table$Freq.OB, digits = 2), nsmall = 2)
+
+seurat.object@meta.data$ratio <- NA
+seurat.object@meta.data$ratio <- with(seurat.object@meta.data, ob.table$ratio[match(integrated_snn_res.0.5, ob.table$Var1)])
+head(seurat.object@meta.data)
+DimPlot(seurat.object, reduction = "umap", group.by = "ratio", label = T, label.size = 7, repel = T)
 
 
 # Find cluster biomarkers -------------------------------------------------
@@ -282,7 +294,7 @@ FeaturePlot(seurat.object, features = "BMI", pt.size = 0.4, cols = c("blue", "re
 
 # Visualize after biowulf run ---------------------------------------------
 
-seurat.object <- readRDS("Obesity_scRNA-SCTRegression-NW-OB.RDS")
+seurat.object <- readRDS("Obesity_scRNA-Anchored-NW-OB-90pctvar.RDS")
 colnames(seurat.object@meta.data)
 
 cds <- readRDS("Obesity_scRNA-SCTRegression-NW-OB-monocle3CDS.RDS")
@@ -302,6 +314,70 @@ propeller(clusters = Idents(seurat.object), sample = seurat.object$DonorID, grou
 # Plot cell type proportions
 plotCellTypeProps(clusters=seurat.object$Obesity, sample=seurat.object$SCT_snn_res.0.5)
 
+
+
+# Combine similar cell populations ------------------------------------------------
+#renaming IDs based on conclusions from combined scRNA and snATAC
+
+seurat.object <- readRDS("Obesity_scRNA-Anchored-NW-OB-90pctvar.RDS")
+
+old.ids <- levels(Idents(seurat.object))
+new.ids <- c("alpha", #0
+						 "beta", #1
+						 "immune",  #2
+						 "beta", #3
+						 "ncRNA", #4
+						 "acinar", #5
+						 "beta", #6
+						 "acinar", #7
+						 "IGFBP7", #8
+						 "delta", #9
+						 "ductal", #10
+						 "IGFBP7", #11
+						 "beta", #12
+						 "alpha", #13
+						 "alpha", #14
+						 "immune", #15
+						 "gamma", #16
+						 "immune", #17
+						 "ncRNA", #18
+						 "beta" #19
+						 )
+
+names(new.ids) <- levels(seurat.object)
+seurat.object <- RenameIdents(seurat.object, new.ids)
+Idents(seurat.object)
+
+
+seurat.object <- PrepSCTFindMarkers(seurat.object, assay = "SCT")
+##find positively expressed markers for all clusters compared to all remaining clusters
+
+markers.seurat.pos <- FindAllMarkers(seurat.object, assay = "SCT", only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+markers.seurat.pos <- markers.seurat.pos %>% 
+	group_by(cluster) %>%
+	arrange(desc(abs(avg_log2FC)), .by_group = TRUE)
+saveRDS(markers.seurat.pos, file = paste0(rnaProject, "-posmarkers-byCellType-90pctvar.rds"))
+
+markers.seurat.all <- FindAllMarkers(seurat.object, assay = "SCT", only.pos = FALSE, min.pct = 0.25, logfc.threshold = 0.25)
+markers.seurat.all %>%
+	group_by(cluster) %>%
+	arrange(desc(abs(avg_log2FC)), .by_group = TRUE)
+saveRDS(markers.seurat.all, file = paste0(rnaProject, "-allmarkers-byCellType-90pctvar.rds"))
+
+##create workbook
+markers.table <- openxlsx::createWorkbook()
+
+
+##write positive markers to table
+openxlsx::addWorksheet(markers.table, sheetName = "PosMarkers")
+openxlsx::writeData(markers.table, sheet = "PosMarkers", x = markers.seurat.pos,startCol = 1, startRow = 1, colNames = TRUE)
+
+##write all markers to table
+openxlsx::addWorksheet(markers.table, sheetName = "AllMarkers")
+openxlsx::writeData(markers.table, sheet = "AllMarkers", x = markers.seurat.all, startCol = 1, startRow = 1, colNames = TRUE)
+
+##save workbook
+openxlsx::saveWorkbook(wb = markers.table, file = paste0(rnaProject, "_seuratMarkers-byCellType-90pctvar.xlsx"), overwrite = TRUE, returnValue = TRUE)
 
 
 

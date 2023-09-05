@@ -27,7 +27,7 @@ knitr::opts_knit$set(root.dir = "/Users/heustonef/Desktop/Obesity/snATAC/")
 ```{r}
 library(ArchR) 
 addArchRGenome("hg38")
-invisible(sapply(list.files(path = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/RFunctions", pattern = "*.R$", full.names = TRUE),
+invisible(sapply(list.files(path = "/Users/heustonef/OneDrive/SingleCellMetaAnalysis/GitRepositories/RFunctions", pattern = "*.R$", full.names = TRUE),
 								 source))
 atacProject <- "Obesity_snATAC-ArchR_NW-OB"
 writeLines(capture.output(sessionInfo()), paste0(atacProject, "_sessionInfo.txt"))
@@ -36,7 +36,7 @@ writeLines(capture.output(sessionInfo()), paste0(atacProject, "_sessionInfo.txt"
 ## Load metadata
 
 ```{r}
-metadata <- read.table(file = "/Users/heustonef/OneDrive-NIH/SingleCellMetaAnalysis/GitRepository/scMultiomics_MetaAnalysis/HPAPMetaData.txt", header = TRUE, sep = "\t")
+metadata <- read.table(file = "/Users/heustonef/OneDrive/SingleCellMetaAnalysis/HPAPMetaData.txt", header = TRUE, sep = "\t")
 rownames(metadata) <- metadata$DonorID
 ```
 
